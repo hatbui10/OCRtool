@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Trung bình 5 số</title>
+
+<style>
+
+body{
+background:#0f172a;
+font-family:Arial;
+display:flex;
+justify-content:center;
+align-items:flex-start;
+height:100vh;
+margin:50px;
+color:white;
+}
+
+.panel{
+background:#1e293b;
+padding:30px 40px;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+text-align:center;
+}
+
+h2{
+margin-top:0;
+margin-bottom:25px;
+font-weight:normal;
+}
+
+.row{
+display:flex;
+gap:10px;
+justify-content:center;
+margin-bottom:20px;
+}
+
+input{
+width:60px;
+height:55px;
+font-size:22px;
+text-align:center;
+border:none;
+border-radius:8px;
+background:#334155;
+color:white;
+}
+
+input:focus{
+outline:none;
+box-shadow:0 0 0 2px #38bdf8;
+}
+
+#o6{
+background:#2563eb;
+}
+
+.result{
+background:red;
+font-weight:bold;
+}
+
+.label{
+font-size:14px;
+opacity:0.8;
+margin-bottom:8px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="panel">
+
+<h2>Trung bình 5 số gần nhất</h2>
+
+<div class="label">5 số gần nhất</div>
+
+<div class="row">
+<input id="o1" readonly>
+<input id="o2" readonly>
+<input id="o3" readonly>
+<input id="o4" readonly>
+<input id="o5" readonly>
+</div>
+
+<div class="label">Nhập số (0-9)</div>
+
+<div class="row">
+<input id="o6" maxlength="1" autocomplete="off">
+<input id="kq" class="result" readonly placeholder="TB">
+</div>
+
+</div>
+
+<script>
+
+const boxes=[o1,o2,o3,o4,o5]
+
+window.onload=()=>{
+o6.focus()
+}
+
+o6.addEventListener("input",function(){
+
+let v=this.value
+
+if(!/^[0-9]$/.test(v)){
+this.value=""
+return
+}
+
+// dịch trái
+for(let i=0;i<4;i++){
+boxes[i].value=boxes[i+1].value
+}
+
+boxes[4].value=v
+
+// tính trung bình
+let sum=0
+let count=0
+
+boxes.forEach(b=>{
+if(b.value!==""){
+sum+=Number(b.value)
+count++
+}
+})
+
+kq.value=count?(sum/count).toFixed(2):""
+
+this.value=""
+this.focus()
+
+})
+
+</script>
+
+</body>
+</html>
