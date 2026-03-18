@@ -130,9 +130,12 @@ document.getElementById("processBtn").onclick = () => {
   let arr = allNumbers.split("").reverse();
 
   let sequences = [];
-  for (let i = 0; i <= arr.length - len; i++) {
-    sequences.push(arr.slice(i, i + len).join(""));
-  }
+for (let i = 0; i <= arr.length - len; i++) {
+  sequences.push(arr.slice(i, i + len).join(""));
+}
+
+/* 🔥 XÓA TRÙNG */
+sequences = [...new Set(sequences)];
 
   let greater = [];
   let less = [];
@@ -141,6 +144,7 @@ document.getElementById("processBtn").onclick = () => {
     let current = `"${sequences[i]}"`;
     let next = sequences[i + 1];
 
+    
     let lastDigit = parseInt(next[next.length - 1]);
 
     if (lastDigit >= 5) {
@@ -149,6 +153,10 @@ document.getElementById("processBtn").onclick = () => {
       less.push(current);
     }
   }
+
+  greater = [...new Set(greater)];
+less = [...new Set(less)];
+  
 
   /* 🔥 FORMAT 20 SỐ / DÒNG */
   document.getElementById("all").value =
