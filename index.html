@@ -2,337 +2,156 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Trung bình động</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCR nhiều ảnh</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
-
-body{
-background:#0f172a;
-font-family:Arial;
-display:flex;
-justify-content:center;
-align-items:flex-start;
-height:100vh;
-margin:50px;
-color:white;
+body {
+  font-family: Arial;
+  background: #0f172a;
+  color: #fff;
+  text-align: center;
+  padding: 20px;
 }
 
-.panel{
-background:#1e293b;
-padding:30px 40px;
-border-radius:12px;
-box-shadow:0 10px 25px rgba(0,0,0,0.4);
-width:460px;
+textarea {
+  width: 95%;
+  height: 120px;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
 }
 
-h2{
-text-align:center;
-margin-top:0;
-margin-bottom:20px;
+button {
+  margin: 8px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  background: #22c55e;
+  color: #fff;
+  cursor: pointer;
 }
-
-.row{
-display:flex;
-gap:10px;
-justify-content:center;
-margin-bottom:20px;
-}
-
-.row1{
-display:grid;
-grid-template-columns:repeat(5, 60px);
-gap:10px;
-justify-content:center;
-margin-bottom:20px;
-}
-
-input{
-width:60px;
-height:55px;
-font-size:22px;
-text-align:center;
-border:none;
-border-radius:8px;
-background:#334155;
-color:white;
-}
-
-input:focus{
-outline:none;
-box-shadow:0 0 0 2px #38bdf8;
-}
-
-#o6{
-background:#2563eb;
-}
-
-.result{
-background:red;
-font-weight:bold;
-}
-
-.state{
-font-weight:bold;
-font-size:20px;
-}
-
-/* hiệu ứng nhấp nháy */
-@keyframes blink{
-0%{transform:scale(1);filter:brightness(1);}
-50%{transform:scale(1.08);filter:brightness(1.6);}
-100%{transform:scale(1);filter:brightness(1);}
-}
-
-.lon{
-background:#111FA2;
-animation:blink 0.8s infinite;
-box-shadow:0 0 15px #22c55e;
-}
-
-.nho{
-background:#2C2C2C;
-animation:blink 0.8s infinite;
-box-shadow:0 0 15px #ef4444;
-}
-
-textarea{
-width:100%;
-height:120px;
-background:#020617;
-color:#38bdf8;
-border:none;
-border-radius:8px;
-padding:10px;
-font-size:16px;
-resize:none;
-}
-
-.label{
-font-size:14px;
-opacity:0.8;
-margin-bottom:6px;
-}
-
-
-.control{
-display:flex;
-align-items:center;
-justify-content:center;
-gap:12px;
-margin-bottom:20px;
-}
-
-.control label{
-font-size:15px;
-opacity:0.9;
-}
-
-.control input{
-width:70px;
-height:38px;
-border-radius:8px;
-border:none;
-text-align:center;
-font-size:16px;
-background:#0f172a;
-color:#38bdf8;
-box-shadow:0 0 0 1px #334155 inset;
-}
-
-.control input:focus{
-outline:none;
-box-shadow:0 0 0 2px #38bdf8;
-}
-
-.control button{
-padding:9px 18px;
-border:none;
-border-radius:8px;
-background:#2563eb;
-color:white;
-font-size:15px;
-cursor:pointer;
-transition:0.25s;
-}
-
-.control button:hover{
-background:#3b82f6;
-transform:translateY(-1px);
-box-shadow:0 4px 10px rgba(0,0,0,0.4);
-}
-
-
-
 </style>
 </head>
 
 <body>
 
-<div class="panel">
+<h3>Upload tối đa 50 ảnh</h3>
 
-<h2>Trung bình động</h2>
+<input type="file" id="upload" accept="image/*" multiple>
+<br>
 
-<div class="control">
+<select id="lengthSelect">
+  <option value="4">4 số</option>
+  <option value="5" selected>5 số</option>
+  <option value="6">6 số</option>
+</select>
 
-<label>Số ô TB</label>
+<p id="status"></p>
 
-<input type="number" id="count" value="5" min="2" max="20">
+<canvas id="canvas" style="display:none;"></canvas>
 
-<button onclick="createBoxes()">Tạo</button>
-<button onclick="resetBoxes()">Reset</button>
+<h4>Tất cả</h4>
+<textarea id="all"></textarea>
+<button onclick="copy('all')">Copy</button>
 
-</div>
+<h4>> 5</h4>
+<textarea id="greater"></textarea>
+<button onclick="copy('greater')">Copy</button>
 
-<div id="boxes" class="row1"></div>
-
-<div class="row">
-
-<input id="inputBox" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-
-<input id="avg" class="result" readonly placeholder="TB">
-
-<input id="state" class="state" readonly>
-
-</div>
-
-<textarea id="log"></textarea>
-
-</div>
+<h4>< 5</h4>
+<textarea id="less"></textarea>
+<button onclick="copy('less')">Copy</button>
 
 <script>
+const upload = document.getElementById("upload");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-let boxes=[]
-const container=document.getElementById("boxes")
+upload.addEventListener("change", async (e) => {
+  let files = Array.from(e.target.files).slice(0, 50);
 
-const inputBox=document.getElementById("inputBox")
-const avgBox=document.getElementById("avg")
-const stateBox=document.getElementById("state")
-const logBox=document.getElementById("log")
+  if (files.length === 0) return;
 
+  let allNumbers = "";
 
-const STORAGE_KEY="history_log"
+  for (let index = 0; index < files.length; index++) {
+    document.getElementById("status").textContent =
+      `Đang xử lý ảnh ${index + 1}/${files.length}...`;
 
-/* load khi mở trang */
-let saved = localStorage.getItem(STORAGE_KEY)
-if(saved){
-logBox.value = saved
+    let file = files[index];
+
+    let img = new Image();
+    img.src = URL.createObjectURL(file);
+
+    await new Promise(resolve => {
+      img.onload = resolve;
+    });
+
+    // crop giữa
+    const sx = img.width * 0.35;
+    const sw = img.width * 0.3;
+
+    canvas.width = sw;
+    canvas.height = img.height;
+
+    ctx.drawImage(img, sx, 0, sw, img.height, 0, 0, sw, img.height);
+
+    // OCR
+    let result = await Tesseract.recognize(canvas, 'eng');
+
+    let numbers = result.data.text.replace(/[^0-9]/g, "");
+
+    allNumbers += numbers;
+  }
+
+  if (!allNumbers) {
+    document.getElementById("status").textContent = "Không có số 😑";
+    return;
+  }
+
+  let len = parseInt(document.getElementById("lengthSelect").value);
+
+  let arr = allNumbers.split("").reverse();
+
+  let sequences = [];
+  for (let i = 0; i <= arr.length - len; i++) {
+    sequences.push(arr.slice(i, i + len).join(""));
+  }
+
+  let greater = [];
+  let less = [];
+
+  for (let i = 0; i < sequences.length - 1; i++) {
+    let current = sequences[i];
+    let next = sequences[i + 1];
+
+    let lastDigit = parseInt(next[next.length - 1]);
+
+    if (lastDigit >= 5) {
+      greater.push(`"${current}"`);
+    } else if (lastDigit < 5) {
+      less.push(`"${current}"`);
+    }
+  }
+
+  document.getElementById("all").value =
+    sequences.map(s => `"${s}"`).join(", ");
+
+  document.getElementById("greater").value = greater.join(", ");
+  document.getElementById("less").value = less.join(", ");
+
+  document.getElementById("status").textContent = "Xong 😏";
+});
+
+function copy(id) {
+  let el = document.getElementById(id);
+  el.select();
+  document.execCommand("copy");
 }
-
-/* lưu mỗi khi thay đổi */
-logBox.addEventListener("input",function(){
-localStorage.setItem(STORAGE_KEY,this.value)
-})
-
-
-
-function createBoxes(){
-
-container.innerHTML=""
-boxes=[]
-
-let n=parseInt(document.getElementById("count").value)
-
-
-
-for(let i=0;i<n;i++){
-
-let input=document.createElement("input")
-input.readOnly=true
-
-container.appendChild(input)
-boxes.push(input)
-
-}
-
-avgBox.value=""
-stateBox.value=""
-
-
-inputBox.focus()
-
-}
-
-createBoxes()
-
-inputBox.addEventListener("input",function(){
-
-let v=this.value
-
-if(!/^[0-9]$/.test(v)){
-this.value=""
-return
-}
-
-let removed=boxes[0].value
-
-for(let i=0;i<boxes.length-1;i++){
-boxes[i].value=boxes[i+1].value
-}
-
-boxes[boxes.length-1].value=v
-
-if(removed!=""){
-logBox.value+=removed
-localStorage.setItem(STORAGE_KEY,logBox.value)
-}
-
-let filled = boxes.every(b => b.value !== "")
-
-if(filled){
-
-let sum=0
-
-boxes.forEach(b=>{
-sum+=Number(b.value)
-})
-
-let avg=sum/boxes.length
-
-avgBox.value=avg.toFixed(2)
-
-stateBox.classList.remove("lon","nho")
-
-if(avg>=5){
-
-stateBox.value="LỚN"
-stateBox.classList.add("lon")
-
-}else{
-
-stateBox.value="NHỎ"
-stateBox.classList.add("nho")
-
-}
-
-}else{
-
-avgBox.value=""
-stateBox.value=""
-stateBox.classList.remove("lon","nho")
-
-}
-
-this.value=""
-this.focus()
-
-})
-
-function resetBoxes(){
-
-boxes.forEach(b=>{
-b.value=""
-})
-
-avgBox.value=""
-stateBox.value=""
-stateBox.classList.remove("lon","nho")
-
-inputBox.focus()
-
-}
-
-
-
 </script>
 
 </body>
