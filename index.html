@@ -3,220 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
-<title>OCR Tool</title>
+<title>Mini Editor Full Tags</title>
 
 <style>
-body {
-  font-family: Arial;
-  background: #0f172a;
-  color: #fff;
-  text-align: center;
-  padding: 20px;
-}
+body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; background: #1e1e1e; color: white; }
+.topbar { display: flex; gap: 8px; padding: 10px; background: #111; border-bottom: 1px solid #333; overflow-x: auto; }
+.topbar button { padding: 8px 14px; border: none; border-radius: 4px; background: #333; color: white; cursor: pointer; white-space: nowrap; }
+.topbar button:hover { background: #444; color: #00f2fe; }
+.btn-run { background: #28a745 !important; margin-left: auto; font-weight: bold; }
 
-select, button, input {
-  margin: 6px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: none;
-}
+.main { display: flex; flex-direction: column; flex: 1; }
+textarea { height: 50%; width: 100%; background: #1e1e1e; color: #9cdcfe; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; border: none; border-bottom: 2px solid #333; outline: none; resize: none; }
+iframe { height: 50%; width: 100%; background: white; border: none; }
 
-textarea {
-  width: 95%;
-  height: 120px;
-  margin-top: 8px;
-  padding: 10px;
-  border-radius: 8px;
-}
-
-button {
-  background: #22c55e;
-  color: white;
-  cursor: pointer;
-}
+.popup { position: fixed; bottom: 0; left: 0; right: 0; background: #252526; border-top: 2px solid #0078d4; padding: 15px; display: none; flex-direction: column; max-height: 60%; z-index: 1000; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
+.close { text-align: right; color: #ff4d4d; cursor: pointer; margin-bottom: 10px; font-weight: bold; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; overflow-y: auto; padding-bottom: 20px; }
+.grid button { padding: 10px 5px; border: 1px solid #444; border-radius: 4px; background: #333; color: #ddd; cursor: pointer; font-size: 12px; transition: 0.2s; }
+.grid button:hover { background: #0078d4; color: white; border-color: #fff; }
 </style>
 </head>
 
 <body>
 
-<h3>OCR + Phân loại số</h3>
+<div class="topbar">
+  <button onclick="openPopup('html_basic')">Cấu trúc</button>
+  <button onclick="openPopup('html_text')">Văn bản</button>
+  <button onclick="openPopup('html_form')">Form & Table</button>
+  <button onclick="openPopup('css')">CSS Thuần</button>
+  <button onclick="openPopup('js')">Javascript</button>
+  <button class="btn-run" onclick="runCode()">RUN ▶</button>
+</div>
 
-<input type="file" id="upload" accept="image/*" multiple>
+<div class="main">
+  <textarea id="code" placeholder="Viết mã tại đây..."></textarea>
+  <iframe id="preview"></iframe>
+</div>
 
-<br>
+<div class="popup" id="popup">
+  <div class="close" onclick="closePopup()">ĐÓNG [X]</div>
+  <div class="grid" id="grid"></div>
+</div>
 
-<select id="lengthSelect">
-  <option value="4">4 số</option>
-  <option value="3" selected>3 số</option>
-  <option value="5">5 số</option>
-</select>
-
-<button id="ocrBtn">OCR</button>
-<button id="processBtn">Xử lý</button>
-
-<p id="status"></p>
-
-<canvas id="canvas" style="display:none;"></canvas>
-
-<h4>Tất cả (<span id="countAll">0</span>)</h4>
-<textarea id="all" readonly></textarea>
-<button onclick="copy('all')">Copy</button>
-
-<h4>>=5 (<span id="countGreater">0</span>)</h4>
-<textarea id="greater" readonly></textarea>
-<button onclick="copy('greater')">Copy</button>
-
-<h4><5 (<span id="countLess">0</span>)</h4>
-<textarea id="less" readonly></textarea>
-<button onclick="copy('less')">Copy</button>
-
-  
-<h4>Xuất hiện cả 2 (<span id="countBoth">0</span>)</h4>
-<textarea id="both" readonly></textarea>
-<button onclick="copy('both')">Copy</button>
-
-  
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+const textarea = document.getElementById("code");
+const grid = document.getElementById("grid");
+const popup = document.getElementById("popup");
+const preview = document.getElementById("preview");
 
-let allNumbers = "";
+const data = {
+  // --- NHÓM HTML CẤU TRÚC ---
+  html_basic: [
+    {name:"<div>", action:()=>wrapTag("div")},
+    {name:"<span>", action:()=>wrapTag("span")},
+    {name:"<section>", action:()=>wrapTag("section")},
+    {name:"<nav>", action:()=>wrapTag("nav")},
+    {name:"<header>", action:()=>wrapTag("header")},
+    {name:"<footer>", action:()=>wrapTag("footer")},
+    {name:"<main>", action:()=>wrapTag("main")},
+    {name:"<style>", action:()=>wrapTag("style")},
+    {name:"<img>", action:()=>insertContent('<img src="https://via.placeholder.com/150" alt="ảnh">')},
+    {name:"<a> (Link)", action:()=>insertContent('<a href="#">Link tại đây</a>')}
+  ],
 
-/* 🔥 FORMAT 20 SỐ / DÒNG */
-function format20(arr) {
-  let result = [];
-  for (let i = 0; i < arr.length; i += 20) {
-    // slice 20 số, nối bằng ", " và **thêm dấu , ở cuối**
-    let line = arr.slice(i, i + 20).join(", ") + ",";
-    result.push(line);
-  }
-  return result.join("\n");
-}
+  // --- NHÓM HTML VĂN BẢN ---
+  html_text: [
+    {name:"<h1>", action:()=>wrapTag("h1")},
+    {name:"<h2>", action:()=>wrapTag("h2")},
+    {name:"<h3>", action:()=>wrapTag("h3")},
+    {name:"<p>", action:()=>wrapTag("p")},
+    {name:"<b> (Đậm)", action:()=>wrapTag("b")},
+    {name:"<i> (Nghiêng)", action:()=>wrapTag("i")},
+    {name:"<ul> (Danh sách)", action:()=>wrapTag("ul")},
+    {name:"<li> (Mục con)", action:()=>wrapTag("li")},
+    {name:"<br> (Xuống dòng)", action:()=>insertContent('<br>\n')},
+    {name:"<hr> (Gạch ngang)", action:()=>insertContent('<hr>\n')}
+  ],
 
-/* OCR */
-document.getElementById("ocrBtn").onclick = async () => {
-  let files = Array.from(document.getElementById("upload").files).slice(0, 100);
+  // --- NHÓM HTML FORM & TABLE ---
+  html_form: [
+    {name:"<button>", action:()=>wrapTag("button")},
+    {name:"<input>", action:()=>insertContent('<input type="text" placeholder="Nhập...">')},
+    {name:"<textarea>", action:()=>wrapTag("textarea")},
+    {name:"<table>", action:()=>insertContent('<table>\n  <tr>\n    <td></td>\n  </tr>\n</table>')},
+    {name:"<form>", action:()=>wrapTag("form")},
+    {name:"<select>", action:()=>insertContent('<select>\n  <option>Lựa chọn</option>\n</select>')}
+  ],
 
-  if (files.length === 0) return;
+  // --- NHÓM CSS (THUẦN) ---
+  css: [
+    {name:"color", action:()=>insertContent("color: red;")},
+    {name:"background", action:()=>insertContent("background: #f0f0f0;")},
+    {name:"width", action:()=>insertContent("width: 100px;")},
+    {name:"height", action:()=>insertContent("height: 100px;")},
+    {name:"font-size", action:()=>insertContent("font-size: 16px;")},
+    {name:"border", action:()=>insertContent("border: 1px solid black;")},
+    {name:"border-radius", action:()=>insertContent("border-radius: 8px;")},
+    {name:"padding", action:()=>insertContent("padding: 10px;")},
+    {name:"margin", action:()=>insertContent("margin: 0 auto;")},
+    {name:"display: flex", action:()=>insertContent("display: flex;")},
+    {name:"flex-direction", action:()=>insertContent("flex-direction: column;")},
+    {name:"box-shadow", action:()=>insertContent("box-shadow: 2px 2px 10px gray;")}
+  ],
 
-  allNumbers = "";
-
-  for (let i = 0; i < files.length; i++) {
-    document.getElementById("status").textContent = `OCR ${i+1}/${files.length}`;
-
-    let img = new Image();
-    img.src = URL.createObjectURL(files[i]);
-
-    await new Promise(r => img.onload = r);
-
-    let sx = img.width * 0.35;
-    let sw = img.width * 0.3;
-
-    canvas.width = sw;
-    canvas.height = img.height;
-
-    ctx.drawImage(img, sx, 0, sw, img.height, 0, 0, sw, img.height);
-
-    let result = await Tesseract.recognize(canvas, 'eng');
-    let nums = result.data.text.replace(/[^0-9]/g, "");
-
-    allNumbers += nums;
-  }
-
-  document.getElementById("status").textContent = "OCR xong 😏";
+  // --- NHÓM JS ---
+  js: [
+    {name:"alert", action:()=>insertContent('alert("Chào bạn!");')},
+    {name:"console.log", action:()=>insertContent('console.log("Debug");')},
+    {name:"function", action:()=>insertContent('function handle() {\n  \n}')},
+    {name:"onClick", action:()=>insertContent('onclick="alert(\'clicked\')"')},
+    {name:"querySelector", action:()=>insertContent('document.querySelector("")')}
+  ]
 };
 
-/* XỬ LÝ */
-document.getElementById("processBtn").onclick = () => {
-  if (!allNumbers) return;
-
-  let len = parseInt(document.getElementById("lengthSelect").value);
-
-  let arr = allNumbers.split("").reverse();
-
-  let sequences = [];
-for (let i = 0; i <= arr.length - len; i++) {
-  sequences.push(arr.slice(i, i + len).join(""));
+function openPopup(type) {
+  grid.innerHTML = "";
+  data[type].forEach(item => {
+    const btn = document.createElement("button");
+    btn.textContent = item.name;
+    btn.onclick = () => {
+      item.action();
+      closePopup();
+      runCode(); 
+    };
+    grid.appendChild(btn);
+  });
+  popup.style.display = "flex";
 }
 
-/* 🔥 XÓA TRÙNG */
-sequences = [...new Set(sequences)];
+function closePopup() { popup.style.display = "none"; }
 
-  let greater = [];
-  let less = [];
-
-  for (let i = 0; i < sequences.length - 1; i++) {
-    let current = `"${sequences[i]}"`;
-    let next = sequences[i + 1];
-
-    
-    let lastDigit = parseInt(next[next.length - 1]);
-
-    if (lastDigit >= 5) {
-      greater.push(current);
-    } else {
-      less.push(current);
-    }
-  }
-
-  greater = [...new Set(greater)];
-less = [...new Set(less)];
-
-  // Sau khi đã có greater và less (đã lọc trùng trong từng array)
-let both = [];
-
-// Tìm số xuất hiện ở cả 2
-greater.forEach(num => {
-  if (less.includes(num)) {
-    both.push(num);
-  }
-});
-
-// Loại bỏ số trùng khỏi greater và less
-greater = greater.filter(num => !both.includes(num));
-less = less.filter(num => !both.includes(num));
-
-// Loại trùng trong both
-both = [...new Set(both)];
-
-// Gán vào textarea
-document.getElementById("greater").value = greater.join(", ");
-document.getElementById("less").value = less.join(", ");
-document.getElementById("both").value = both.join(", ");
-
-// Cập nhật đếm
-document.getElementById("countGreater").textContent = greater.length;
-document.getElementById("countLess").textContent = less.length;
-document.getElementById("countBoth").textContent = both.length;
-  
-
-  /* 🔥 FORMAT 20 SỐ / DÒNG */
-  document.getElementById("all").value =
-    format20(sequences.map(s => `"${s}"`));
-
-  document.getElementById("greater").value =
-    format20(greater);
-
-  document.getElementById("less").value =
-    format20(less);
-
-  /* đếm */
-  document.getElementById("countAll").textContent = sequences.length;
-  document.getElementById("countGreater").textContent = greater.length;
-  document.getElementById("countLess").textContent = less.length;
-
-  document.getElementById("status").textContent = "Xong 😎";
-};
-
-/* copy */
-function copy(id) {
-  let el = document.getElementById(id);
-  el.select();
-  document.execCommand("copy");
+function insertContent(content) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  textarea.value = textarea.value.slice(0, start) + content + textarea.value.slice(end);
+  textarea.focus();
+  textarea.selectionStart = textarea.selectionEnd = start + content.length;
 }
+
+function wrapTag(tag) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selectedText = textarea.value.substring(start, end);
+  const open = `<${tag}>`;
+  const close = `</${tag}>`;
+  textarea.value = textarea.value.slice(0, start) + open + selectedText + close + textarea.value.slice(end);
+  textarea.focus();
+  textarea.selectionStart = start + open.length;
+  textarea.selectionEnd = start + open.length + selectedText.length;
+}
+
+function runCode() {
+  preview.srcdoc = textarea.value;
+}
+
+// Khởi tạo mặc định
+textarea.value = "\n<style>\n  h1 { color: red; }\n</style>\n\n<h1>Mini Editor</h1>";
+runCode();
 </script>
 
 </body>
