@@ -93,26 +93,113 @@ const data = {
     {n:'=""', a:()=>ins('=""')}, {n:"( )", a:()=>ins("()")}, {n:"{ }", a:()=>ins("{}")},
     {n:";", a:()=>ins(";")}, {n:"Tab", a:()=>ins("  ")}, {n:"' '", a:()=>ins("''")}
   ],
+  
+  
   html: [
-    {n:"<style>", a:()=>wrap("<style>\n","\n</style>")},
-    {n:"<script>", a:()=>wrap("<script>\n","\n<\/script>")},
+    /* Nhóm thuộc tính (Nút mới) */
+    {n:'id=""', a:()=>ins('id=""')},
+    {n:'class=""', a:()=>ins('class=""')},
+    {n:'src=""', a:()=>ins('src=""')},
+    {n:'href=""', a:()=>ins('href=""')},
+    {n:'style=""', a:()=>ins('style=""')},
+    {n:'type=""', a:()=>ins('type=""')},
+    {n:'alt=""', a:()=>ins('alt=""')},
+    
+    /* Nhóm thẻ (Thẻ bao quanh) */
     {n:"<div>", a:()=>wrap("<div>","</div>")},
-    {n:"<body>", a:()=>wrap("<body>\n","\n</body>")}
+    {n:"<span>", a:()=>wrap("<span>","</span>")},
+    {n:"<h1>", a:()=>wrap("<h1>","</h1>")},
+    {n:"<p>", a:()=>wrap("<p>","</p>")},
+    {n:"<a>", a:()=>wrap("<a>","</a>")},
+    {n:"<img>", a:()=>ins('<img src="" alt="">')},
+    {n:"<script>", a:()=>wrap("<script>\n","\n<\/script>")},
+    {n:"<style>", a:()=>wrap("<style>\n","\n</style>")}
   ],
-  css: [{n:"flex", a:()=>ins("display: flex;")}, {n:"gap", a:()=>ins("gap: 10px; ")}],
-  js: [{n:"log", a:()=>ins('console.log("");')}, {n:"alert", a:()=>ins('alert("");')}]
+  
+   css: [
+    /* --- NHÓM CHỮ (FONT & TEXT) --- */
+    {n:"f-size", a:()=>ins("font-size: 16px;")},
+    {n:"f-bold", a:()=>ins("font-weight: bold;")},
+    {n:"color", a:()=>ins('color: #ffffff;')},
+    {n:"t-center", a:()=>ins("text-align: center;")},
+    {n:"l-height", a:()=>ins("line-height: 1.5;")},
+    {n:"family", a:()=>ins("font-family: sans-serif;")},
+    {n:"shadow", a:()=>ins("text-shadow: 2px 2px 4px rgba(0,0,0,0.5);")},
+
+    /* --- NHÓM BỐ CỤC (LAYOUT) --- */
+    {n:"flex", a:()=>ins("display: flex;")},
+    {n:"column", a:()=>ins("flex-direction: column;")},
+    {n:"center", a:()=>ins("justify-content: center; align-items: center;")},
+    {n:"grid", a:()=>ins("display: grid; grid-template-columns: 1fr 1fr;")},
+    {n:"gap", a:()=>ins("gap: 10px;")},
+    {n:"fixed", a:()=>ins("position: fixed; top: 0; left: 0; right: 0; z-index: 1000;")},
+    {n:"absolute", a:()=>ins("position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);")},
+
+    /* --- NHÓM KHUNG (BOX MODEL) --- */
+    {n:"width", a:()=>ins("width: 100%;")},
+    {n:"height", a:()=>ins("height: 100vh;")},
+    {n:"padding", a:()=>ins("padding: 10px;")},
+    {n:"margin", a:()=>ins("margin: 10px;")},
+    {n:"border", a:()=>ins("border: 1px solid #444;")},
+    {n:"radius", a:()=>ins("border-radius: 8px;")},
+    {n:"bg-color", a:()=>ins("background-color: #1e1e1e;")},
+    {n:"overflow", a:()=>ins("overflow: hidden;")},
+    {n:"box-sizing", a:()=>ins("box-sizing: border-box;")}
+  ],
+
+  
+  
+    js: [
+    /* Nhóm cơ bản bạn vừa gửi */
+    {n:"log", a:()=>ins('console.log("");')},
+    {n:"alert", a:()=>ins('alert("");')},
+    {n:"if else", a:()=>ins('if () {\n  \n} else {\n  \n}')},
+    {n:"function", a:()=>ins('function name() {\n  \n}')},
+    {n:"for", a:()=>ins('for (let i = 0; i < 10; i++) {\n  \n}')},
+    {n:"getById", a:()=>ins('document.getElementById("");')},
+    {n:"querySelector", a:()=>ins('document.querySelector("");')},
+
+    /* Nhóm bổ sung nâng cao */
+    {n:".focus()", a:()=>ins('.focus();')},
+    {n:".value", a:()=>ins('.value')},
+    {n:".innerHTML", a:()=>ins('.innerHTML = "";')},
+    {n:".innerText", a:()=>ins('.innerText = "";')},
+    {n:".style", a:()=>ins('.style.')},
+    {n:"addEvent", a:()=>ins('.addEventListener("", () => {\n  \n});')}
+  ],
+
+
 };
 
 function ins(val) {
   const s = textarea.selectionStart;
   const e = textarea.selectionEnd;
   textarea.setRangeText(val, s, e, 'end');
-  const midPairs = ["()", '""', "''", "{}", "><"];
-  if (midPairs.includes(val)) { textarea.selectionStart = textarea.selectionEnd = s + 1; }
-  else if (val === '=""') { textarea.selectionStart = textarea.selectionEnd = s + 2; }
+  
+  // 1. Kiểm tra nếu là các thuộc tính HTML có dấu "" (id="", class="",...)
+  if (val.includes('=""')) {
+    // Tìm vị trí của dấu nháy kép đầu tiên trong chuỗi vừa chèn và cộng thêm 1
+    const pos = val.indexOf('""') + 1;
+    textarea.selectionStart = textarea.selectionEnd = s + pos;
+  } 
+  // 2. Kiểm tra các cặp ngoặc đơn giản (bộ phím nhanh)
+  else if (["()", "{}", "[]", "''", '""'].includes(val)) {
+    textarea.selectionStart = textarea.selectionEnd = s + 1;
+  }
+  // 3. Kiểm tra thẻ tự đóng có dấu nháy (ví dụ: <img src="" />)
+  else if (val.includes('src=""')) {
+    const pos = val.indexOf('src="') + 5;
+    textarea.selectionStart = textarea.selectionEnd = s + pos;
+  }
+  // 4. Kiểm tra Comment
+  else if (val === "") {
+    textarea.selectionStart = textarea.selectionEnd = s + 5;
+  }
+  
   textarea.focus();
   updateLineNumbers();
 }
+
 
 function wrap(open, close) {
   const s = textarea.selectionStart;
