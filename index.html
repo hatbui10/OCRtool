@@ -3,164 +3,110 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Editor Full Tags</title>
-
+<title>Mini Editor Final Fix</title>
 <style>
-body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; background: #1e1e1e; color: white; }
-.topbar { display: flex; gap: 8px; padding: 10px; background: #111; border-bottom: 1px solid #333; overflow-x: auto; }
-.topbar button { padding: 8px 14px; border: none; border-radius: 4px; background: #333; color: white; cursor: pointer; white-space: nowrap; }
-.topbar button:hover { background: #444; color: #00f2fe; }
-.btn-run { background: #28a745 !important; margin-left: auto; font-weight: bold; }
-
-.main { display: flex; flex-direction: column; flex: 1; }
-textarea { height: 50%; width: 100%; background: #1e1e1e; color: #9cdcfe; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; border: none; border-bottom: 2px solid #333; outline: none; resize: none; }
-iframe { height: 50%; width: 100%; background: white; border: none; }
-
-.popup { position: fixed; bottom: 0; left: 0; right: 0; background: #252526; border-top: 2px solid #0078d4; padding: 15px; display: none; flex-direction: column; max-height: 60%; z-index: 1000; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
-.close { text-align: right; color: #ff4d4d; cursor: pointer; margin-bottom: 10px; font-weight: bold; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; overflow-y: auto; padding-bottom: 20px; }
-.grid button { padding: 10px 5px; border: 1px solid #444; border-radius: 4px; background: #333; color: #ddd; cursor: pointer; font-size: 12px; transition: 0.2s; }
-.grid button:hover { background: #0078d4; color: white; border-color: #fff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; background: #1a1a1a; color: white; overflow: hidden; }
+  .topbar { display: flex; gap: 8px; padding: 10px; background: #111; border-bottom: 1px solid #333; overflow-x: auto; }
+  .topbar button { padding: 8px 12px; border: none; border-radius: 4px; background: #333; color: white; cursor: pointer; font-size: 12px; }
+  .btn-run { background: #28a745 !important; margin-left: auto; font-weight: bold; }
+  .main { display: flex; flex-direction: column; flex: 1; }
+  .editor-container { display: flex; height: 45%; background: #1e1e1e; border-bottom: 2px solid #333; }
+  .line-numbers { width: 30px; padding: 15px 0; text-align: center; background: #252526; color: #858585; font-family: monospace; font-size: 13px; line-height: 20px; user-select: none; overflow: hidden; }
+  .line-error { color: #ff4d4d !important; font-weight: bold; background: rgba(255, 77, 77, 0.3); }
+  textarea { flex: 1; background: transparent; color: #9cdcfe; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; line-height: 20px; border: none; outline: none; resize: none; white-space: pre; overflow: auto; }
+  #error-log { display: none; background: #4a1515; color: #ff9999; padding: 10px; font-family: monospace; font-size: 12px; border-bottom: 1px solid #ff4d4d; line-height: 1.5; }
+  iframe { height: 55%; width: 100%; background: white; border: none; }
 </style>
 </head>
-
 <body>
 
 <div class="topbar">
-  <button onclick="openPopup('html_basic')">Cấu trúc</button>
-  <button onclick="openPopup('html_text')">Văn bản</button>
-  <button onclick="openPopup('html_form')">Form & Table</button>
-  <button onclick="openPopup('css')">CSS Thuần</button>
-  <button onclick="openPopup('js')">Javascript</button>
-  <button class="btn-run" onclick="runCode()">RUN ▶</button>
+  <button onclick="runCode()" class="btn-run">KIỂM TRA & CHẠY ▶</button>
 </div>
 
 <div class="main">
-  <textarea id="code" placeholder="Viết mã tại đây..."></textarea>
+  <div class="editor-container">
+    <div id="line-numbers" class="line-numbers"></div>
+    <textarea id="code" spellcheck="false" oninput="updateLineNumbers()" onscroll="syncScroll()"><h1>Học Code</h1>
+<script>
+  console.log('Thiếu dấu ngoặc'
+</script></textarea>
+  </div>
+  <div id="error-log"></div>
   <iframe id="preview"></iframe>
-</div>
-
-<div class="popup" id="popup">
-  <div class="close" onclick="closePopup()">ĐÓNG [X]</div>
-  <div class="grid" id="grid"></div>
 </div>
 
 <script>
 const textarea = document.getElementById("code");
-const grid = document.getElementById("grid");
-const popup = document.getElementById("popup");
+const lineNumbers = document.getElementById("line-numbers");
+const errorLog = document.getElementById("error-log");
 const preview = document.getElementById("preview");
 
-const data = {
-  // --- NHÓM HTML CẤU TRÚC ---
-  html_basic: [
-    {name:"<div>", action:()=>wrapTag("div")},
-    {name:"<span>", action:()=>wrapTag("span")},
-    {name:"<section>", action:()=>wrapTag("section")},
-    {name:"<nav>", action:()=>wrapTag("nav")},
-    {name:"<header>", action:()=>wrapTag("header")},
-    {name:"<footer>", action:()=>wrapTag("footer")},
-    {name:"<main>", action:()=>wrapTag("main")},
-    {name:"<style>", action:()=>wrapTag("style")},
-    {name:"<img>", action:()=>insertContent('<img src="https://via.placeholder.com/150" alt="ảnh">')},
-    {name:"<a> (Link)", action:()=>insertContent('<a href="#">Link tại đây</a>')}
-  ],
-
-  // --- NHÓM HTML VĂN BẢN ---
-  html_text: [
-    {name:"<h1>", action:()=>wrapTag("h1")},
-    {name:"<h2>", action:()=>wrapTag("h2")},
-    {name:"<h3>", action:()=>wrapTag("h3")},
-    {name:"<p>", action:()=>wrapTag("p")},
-    {name:"<b> (Đậm)", action:()=>wrapTag("b")},
-    {name:"<i> (Nghiêng)", action:()=>wrapTag("i")},
-    {name:"<ul> (Danh sách)", action:()=>wrapTag("ul")},
-    {name:"<li> (Mục con)", action:()=>wrapTag("li")},
-    {name:"<br> (Xuống dòng)", action:()=>insertContent('<br>\n')},
-    {name:"<hr> (Gạch ngang)", action:()=>insertContent('<hr>\n')}
-  ],
-
-  // --- NHÓM HTML FORM & TABLE ---
-  html_form: [
-    {name:"<button>", action:()=>wrapTag("button")},
-    {name:"<input>", action:()=>insertContent('<input type="text" placeholder="Nhập...">')},
-    {name:"<textarea>", action:()=>wrapTag("textarea")},
-    {name:"<table>", action:()=>insertContent('<table>\n  <tr>\n    <td></td>\n  </tr>\n</table>')},
-    {name:"<form>", action:()=>wrapTag("form")},
-    {name:"<select>", action:()=>insertContent('<select>\n  <option>Lựa chọn</option>\n</select>')}
-  ],
-
-  // --- NHÓM CSS (THUẦN) ---
-  css: [
-    {name:"color", action:()=>insertContent("color: red;")},
-    {name:"background", action:()=>insertContent("background: #f0f0f0;")},
-    {name:"width", action:()=>insertContent("width: 100px;")},
-    {name:"height", action:()=>insertContent("height: 100px;")},
-    {name:"font-size", action:()=>insertContent("font-size: 16px;")},
-    {name:"border", action:()=>insertContent("border: 1px solid black;")},
-    {name:"border-radius", action:()=>insertContent("border-radius: 8px;")},
-    {name:"padding", action:()=>insertContent("padding: 10px;")},
-    {name:"margin", action:()=>insertContent("margin: 0 auto;")},
-    {name:"display: flex", action:()=>insertContent("display: flex;")},
-    {name:"flex-direction", action:()=>insertContent("flex-direction: column;")},
-    {name:"box-shadow", action:()=>insertContent("box-shadow: 2px 2px 10px gray;")}
-  ],
-
-  // --- NHÓM JS ---
-  js: [
-    {name:"alert", action:()=>insertContent('alert("Chào bạn!");')},
-    {name:"console.log", action:()=>insertContent('console.log("Debug");')},
-    {name:"function", action:()=>insertContent('function handle() {\n  \n}')},
-    {name:"onClick", action:()=>insertContent('onclick="alert(\'clicked\')"')},
-    {name:"querySelector", action:()=>insertContent('document.querySelector("")')}
-  ]
-};
-
-function openPopup(type) {
-  grid.innerHTML = "";
-  data[type].forEach(item => {
-    const btn = document.createElement("button");
-    btn.textContent = item.name;
-    btn.onclick = () => {
-      item.action();
-      closePopup();
-      runCode(); 
-    };
-    grid.appendChild(btn);
-  });
-  popup.style.display = "flex";
+function updateLineNumbers(errorLine = null) {
+  const lines = textarea.value.split('\n').length;
+  let lineStr = '';
+  for (let i = 1; i <= lines; i++) {
+    lineStr += `<div class="${i === errorLine ? 'line-error' : ''}">${i}</div>`;
+  }
+  lineNumbers.innerHTML = lineStr;
 }
-
-function closePopup() { popup.style.display = "none"; }
-
-function insertContent(content) {
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  textarea.value = textarea.value.slice(0, start) + content + textarea.value.slice(end);
-  textarea.focus();
-  textarea.selectionStart = textarea.selectionEnd = start + content.length;
-}
-
-function wrapTag(tag) {
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const selectedText = textarea.value.substring(start, end);
-  const open = `<${tag}>`;
-  const close = `</${tag}>`;
-  textarea.value = textarea.value.slice(0, start) + open + selectedText + close + textarea.value.slice(end);
-  textarea.focus();
-  textarea.selectionStart = start + open.length;
-  textarea.selectionEnd = start + open.length + selectedText.length;
-}
+function syncScroll() { lineNumbers.scrollTop = textarea.scrollTop; }
 
 function runCode() {
-  preview.srcdoc = textarea.value;
+  const code = textarea.value;
+  errorLog.style.display = "none";
+  updateLineNumbers();
+
+  // 1. Kiểm tra lỗi HTML cơ bản (Dấu ngoặc thẻ)
+  const openTags = (code.match(/</g) || []).length;
+  const closeTags = (code.match(/>/g) || []).length;
+  if (openTags !== closeTags) {
+    showError("Lỗi cấu trúc: Thiếu dấu '<' hoặc '>'", 0);
+    return;
+  }
+
+  // 2. Tạo nội dung Iframe với cơ chế báo lỗi trực tiếp
+  const finalCode = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>body{font-family:sans-serif;}</style>
+      <script>
+        window.onerror = function(msg, url, line, col) {
+          // Vì mã được chèn trực tiếp, ta cần tính toán dòng dựa trên vị trí thẻ script
+          window.parent.postMessage({type:'error', msg:msg, line:line, col:col}, '*');
+          return true;
+        };
+      <\/script>
+    </head>
+    <body>
+      ${code}
+    </body>
+    </html>
+  `;
+  
+  preview.srcdoc = finalCode;
 }
 
-// Khởi tạo mặc định
-textarea.value = "\n<style>\n  h1 { color: red; }\n</style>\n\n<h1>Mini Editor</h1>";
+window.addEventListener('message', (e) => {
+  if (e.data.type === 'error') {
+    // Điều chỉnh: Trừ đi số dòng của phần <head> phía trên (khoảng 11 dòng ẩn)
+    const offset = 14; 
+    const realLine = e.data.line - offset;
+    showError(e.data.msg, realLine, e.data.col);
+  }
+});
+
+function showError(msg, line, col = "") {
+  errorLog.style.display = "block";
+  errorLog.innerHTML = `⚠️ <b>LỖI:</b> ${msg} <br> [Dòng: ${line > 0 ? line : '?'}, Vị trí: ${col}]`;
+  if (line > 0) updateLineNumbers(line);
+}
+
+// Khởi tạo
+updateLineNumbers();
 runCode();
 </script>
-
 </body>
 </html>
