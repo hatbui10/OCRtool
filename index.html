@@ -78,21 +78,45 @@ const defaultCode = `<h1>Chào bạn!</h1>\n<script>\n  console.log("Sẵn sàng
 
 /* HÀM RESET VỀ MẶC ĐỊNH */
 function resetEditor() {
-  if(confirm("Bạn có muốn xóa hết code và quay về mặc định không?")) {
+  
     textarea.value = defaultCode;
     errorLog.style.display = "none";
     updateLineNumbers();
     runCode();
-  }
+  
 }
 
 /* CÁC HÀM CHÈN KÝ TỰ (GIỮ NGUYÊN TỪ BẢN TRƯỚC) */
 const data = {
   quick: [
-    {n:"<", a:()=>ins("<")}, {n:">", a:()=>ins(">")}, {n:"</", a:()=>ins("</")},
-    {n:'=""', a:()=>ins('=""')}, {n:"( )", a:()=>ins("()")}, {n:"{ }", a:()=>ins("{}")},
-    {n:";", a:()=>ins(";")}, {n:"Tab", a:()=>ins("  ")}, {n:"' '", a:()=>ins("''")}
-  ],
+  /* --- NHÓM KÝ TỰ MỚI TỪ ẢNH CỦA BẠN --- */
+  {n:"Tab ⮕", a:()=>ins("  ")},
+  {n:"#", a:()=>ins("#")},
+  {n:".", a:()=>ins(".")},
+  {n:"(", a:()=>ins("(")},
+  {n:")", a:()=>ins(")")},
+  {n:"&", a:()=>ins("&")},
+  
+
+  /* --- NHÓM COMMENT (CHÚ THÍCH) PHÂN LOẠI --- */
+  // Chú thích HTML: {n:"", a:()=>ins("")},
+  
+  // Chú thích CSS: /* */
+  {n:"/* CSS */", a:()=>ins("/* */")},
+  
+  // Chú thích JS: // hoặc /* */
+  {n:"// JS", a:()=>ins("// ")},
+  {n:"/* JS-Khối */", a:()=>ins("/* */")},
+
+  /* --- CÁC PHÍM NHANH KHÁC --- */
+  {n:"_", a:()=>ins("_")},
+  {n:"<", a:()=>ins("<")},
+  {n:">", a:()=>ins(">")},
+  {n:";", a:()=>ins(";")},
+  {n:"' '", a:()=>ins("''")},
+  {n:'" "', a:()=>ins('""')}
+],
+
   
   
   html: [
