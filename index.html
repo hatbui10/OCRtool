@@ -3,38 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Editor Final Fix</title>
+<title>Mini Editor Pro - Full Toolkit</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; background: #1a1a1a; color: white; overflow: hidden; }
+  
+  /* THANH CÔNG CỤ */
   .topbar { display: flex; gap: 8px; padding: 10px; background: #111; border-bottom: 1px solid #333; overflow-x: auto; }
-  .topbar button { padding: 8px 12px; border: none; border-radius: 4px; background: #333; color: white; cursor: pointer; font-size: 12px; }
+  .topbar button { padding: 8px 12px; border: none; border-radius: 4px; background: #333; color: white; cursor: pointer; font-size: 11px; white-space: nowrap; }
+  .topbar button:hover { background: #444; color: #00f2fe; }
   .btn-run { background: #28a745 !important; margin-left: auto; font-weight: bold; }
+
+  /* KHU VỰC CODE */
   .main { display: flex; flex-direction: column; flex: 1; }
   .editor-container { display: flex; height: 45%; background: #1e1e1e; border-bottom: 2px solid #333; }
-  .line-numbers { width: 30px; padding: 15px 0; text-align: center; background: #252526; color: #858585; font-family: monospace; font-size: 13px; line-height: 20px; user-select: none; overflow: hidden; }
-  .line-error { color: #ff4d4d !important; font-weight: bold; background: rgba(255, 77, 77, 0.3); }
+  .line-numbers { width: 30px; padding: 15px 0; text-align: center; background: #252526; color: #858585; font-family: monospace; font-size: 13px; line-height: 20px; overflow: hidden; }
+  .line-error { color: #ff4d4d !important; font-weight: bold; background: rgba(255, 77, 77, 0.2); }
   textarea { flex: 1; background: transparent; color: #9cdcfe; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; line-height: 20px; border: none; outline: none; resize: none; white-space: pre; overflow: auto; }
-  #error-log { display: none; background: #4a1515; color: #ff9999; padding: 10px; font-family: monospace; font-size: 12px; border-bottom: 1px solid #ff4d4d; line-height: 1.5; }
+  
+  /* BÁO LỖI & PREVIEW */
+  #error-log { display: none; background: #4a1515; color: #ff9999; padding: 10px; font-family: monospace; font-size: 12px; border-bottom: 1px solid #ff4d4d; }
   iframe { height: 55%; width: 100%; background: white; border: none; }
+
+  /* POPUP MENU */
+  .popup { position: fixed; bottom: 0; left: 0; right: 0; background: #252526; border-top: 2px solid #0078d4; padding: 15px; display: none; flex-direction: column; max-height: 60%; z-index: 1000; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); }
+  .close { text-align: right; color: #ff4d4d; cursor: pointer; margin-bottom: 10px; font-weight: bold; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; overflow-y: auto; padding-bottom: 20px; }
+  .grid button { padding: 10px 5px; border: 1px solid #444; border-radius: 4px; background: #333; color: #ddd; cursor: pointer; font-size: 11px; }
+  .grid button:hover { background: #0078d4; color: white; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <button onclick="runCode()" class="btn-run">KIỂM TRA & CHẠY ▶</button>
+  <button onclick="openPopup('html_tags')">HTML Tags</button>
+  <button onclick="openPopup('html_form')">Forms/Table</button>
+  <button onclick="openPopup('css_style')">CSS Style</button>
+  <button onclick="openPopup('css_flex')">CSS Flex</button>
+  <button onclick="openPopup('js_core')">JS Core</button>
+  <button class="btn-run" onclick="runCode()">CHẠY ▶</button>
 </div>
 
 <div class="main">
   <div class="editor-container">
     <div id="line-numbers" class="line-numbers"></div>
-    <textarea id="code" spellcheck="false" oninput="updateLineNumbers()" onscroll="syncScroll()"><h1>Học Code</h1>
+    <textarea id="code" spellcheck="false" oninput="updateLineNumbers()" onscroll="syncScroll()"><h1>Chào bạn!</h1>
+<style>
+  h1 { color: #28a745; }
+</style>
 <script>
-  console.log('Thiếu dấu ngoặc'
+  console.log("Sẵn sàng code!");
 </script></textarea>
   </div>
   <div id="error-log"></div>
   <iframe id="preview"></iframe>
+</div>
+
+<div class="popup" id="popup">
+  <div class="close" onclick="closePopup()">ĐÓNG [X]</div>
+  <div class="grid" id="grid"></div>
 </div>
 
 <script>
@@ -42,7 +69,74 @@ const textarea = document.getElementById("code");
 const lineNumbers = document.getElementById("line-numbers");
 const errorLog = document.getElementById("error-log");
 const preview = document.getElementById("preview");
+const grid = document.getElementById("grid");
+const popup = document.getElementById("popup");
 
+/* DỮ LIỆU BỘ NÚT TỔNG HỢP */
+const data = {
+  html_tags: [
+    {n:"div", a:()=>wrap("<div", ">")}, {n:"span", a:()=>wrap("<span", ">")}, 
+    {n:"p", a:()=>wrap("<p", ">")}, {n:"h1", a:()=>wrap("<h1>", "</h1>")},
+    {n:"a (link)", a:()=>ins('<a href="#"></a>')}, {n:"img", a:()=>ins('<img src="" alt="">')},
+    {n:"ul", a:()=>wrap("<ul>\n  ", "\n</ul>")}, {n:"li", a:()=>wrap("<li>", "</li>")},
+    {n:"style", a:()=>wrap("<style>\n  ", "\n</style>")}, {n:"br", a:()=>ins("<br>\n")}
+  ],
+  html_form: [
+    {n:"button", a:()=>wrap("<button>", "</button>")}, {n:"input", a:()=>ins('<input type="text">')},
+    {n:"form", a:()=>wrap("<form>", "</form>")}, {n:"table", a:()=>ins('<table>\n <tr><td></td></tr>\n</table>')},
+    {n:"select", a:()=>ins('<select>\n <option></option>\n</select>')}
+  ],
+  css_style: [
+    {n:"color", a:()=>ins("color: red;")}, {n:"bg-color", a:()=>ins("background-color: #eee;")},
+    {n:"font-size", a:()=>ins("font-size: 16px;")}, {n:"width", a:()=>ins("width: 100%;")},
+    {n:"height", a:()=>ins("height: 100px;")}, {n:"padding", a:()=>ins("padding: 10px;")},
+    {n:"margin", a:()=>ins("margin: 10px;")}, {n:"border", a:()=>ins("border: 1px solid #000;")}
+  ],
+  css_flex: [
+    {n:"flex", a:()=>ins("display: flex;")}, {n:"center", a:()=>ins("justify-content: center; align-items: center;")},
+    {n:"column", a:()=>ins("flex-direction: column;")}, {n:"wrap", a:()=>ins("flex-wrap: wrap;")}
+  ],
+  js_core: [
+    {n:"alert", a:()=>ins('alert("Hello");')}, {n:"console", a:()=>ins('console.log("");')},
+    {n:"function", a:()=>ins('function name() {\n  \n}')}, {n:"if", a:()=>ins('if (true) {\n  \n}')},
+    {n:"selector", a:()=>ins('document.querySelector("")')}, {n:"onclick", a:()=>ins('onclick=""')}
+  ]
+};
+
+function openPopup(type) {
+  grid.innerHTML = "";
+  data[type].forEach(item => {
+    const btn = document.createElement("button");
+    btn.textContent = item.n;
+    btn.onclick = () => { item.a(); closePopup(); runCode(); };
+    grid.appendChild(btn);
+  });
+  popup.style.display = "flex";
+}
+function closePopup() { popup.style.display = "none"; }
+
+/* HÀM CHÈN VÀ BAO BỌC CODE */
+function ins(val) {
+  const s = textarea.selectionStart;
+  textarea.value = textarea.value.slice(0, s) + val + textarea.value.slice(textarea.selectionEnd);
+  textarea.focus();
+  textarea.selectionStart = textarea.selectionEnd = s + val.length;
+  updateLineNumbers();
+}
+
+function wrap(open, close) {
+  const s = textarea.selectionStart;
+  const e = textarea.selectionEnd;
+  const sel = textarea.value.substring(s, e);
+  const full = open + sel + close;
+  textarea.value = textarea.value.slice(0, s) + full + textarea.value.slice(e);
+  textarea.focus();
+  textarea.selectionStart = s + open.length;
+  textarea.selectionEnd = s + open.length + sel.length;
+  updateLineNumbers();
+}
+
+/* XỬ LÝ LINE VÀ SYNC SCROLL */
 function updateLineNumbers(errorLine = null) {
   const lines = textarea.value.split('\n').length;
   let lineStr = '';
@@ -53,28 +147,24 @@ function updateLineNumbers(errorLine = null) {
 }
 function syncScroll() { lineNumbers.scrollTop = textarea.scrollTop; }
 
+/* CHẠY VÀ BÁO LỖI */
 function runCode() {
   const code = textarea.value;
   errorLog.style.display = "none";
   updateLineNumbers();
 
-  // 1. Kiểm tra lỗi HTML cơ bản (Dấu ngoặc thẻ)
-  const openTags = (code.match(/</g) || []).length;
-  const closeTags = (code.match(/>/g) || []).length;
-  if (openTags !== closeTags) {
-    showError("Lỗi cấu trúc: Thiếu dấu '<' hoặc '>'", 0);
-    return;
+  // Bắt lỗi HTML đơn giản
+  if ((code.match(/</g)||[]).length !== (code.match(/>/g)||[]).length) {
+    showError("Thiếu dấu ngoặc thẻ < hoặc >", 0);
   }
 
-  // 2. Tạo nội dung Iframe với cơ chế báo lỗi trực tiếp
   const finalCode = `
     <!DOCTYPE html>
     <html>
     <head>
-      <style>body{font-family:sans-serif;}</style>
+      <style>body{margin:10px; font-family:sans-serif;}</style>
       <script>
         window.onerror = function(msg, url, line, col) {
-          // Vì mã được chèn trực tiếp, ta cần tính toán dòng dựa trên vị trí thẻ script
           window.parent.postMessage({type:'error', msg:msg, line:line, col:col}, '*');
           return true;
         };
@@ -85,15 +175,13 @@ function runCode() {
     </body>
     </html>
   `;
-  
   preview.srcdoc = finalCode;
 }
 
 window.addEventListener('message', (e) => {
   if (e.data.type === 'error') {
-    // Điều chỉnh: Trừ đi số dòng của phần <head> phía trên (khoảng 11 dòng ẩn)
-    const offset = 14; 
-    const realLine = e.data.line - offset;
+    // Chỉnh offset (thường là 12 dòng ẩn của phần head iframe)
+    const realLine = e.data.line - 13; 
     showError(e.data.msg, realLine, e.data.col);
   }
 });
