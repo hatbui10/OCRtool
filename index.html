@@ -129,8 +129,41 @@
     width: 95%; background: #252526; border: 2px solid #0078d4; padding: 2px 3px; 
     z-index: 9999; border-radius: 8px; box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
   }
-  .grid { display: flex; flex-flow: column wrap; height: 50px; gap: 6px; margin-top: 5px; overflow-x: auto; overflow-y: hidden; padding-bottom: 3px; }
-  .grid button { flex: 0 0 auto; padding: 1px 3px; height: calc(50% - 3px); white-space: nowrap; border: 1px solid #444; border-radius: 4px; background: #333; color: #ddd; font-size: 12px; font-weight: bold; }
+  .grid { 
+  display: flex; 
+  flex-flow: column wrap; /* Giữ nguyên để chia 2 hàng */
+  height: 65px;          /* Tăng nhẹ chiều cao để không bị cấn padding */
+  gap: 8px; 
+  margin-top: 5px; 
+  overflow-x: auto;      /* Cho phép cuộn ngang */
+  overflow-y: hidden; 
+  padding: 5px;          /* Thêm padding để nút không dính sát viền popup */
+  align-content: flex-start; /* Quan trọng: Đẩy các cột sát nhau về bên trái */
+}
+
+.grid button {
+  flex: 0 0 auto;        /* Không cho phép nút bị co lại */
+  width: max-content;    /* Ép nút luôn rộng bằng đúng độ dài chữ */
+  display: inline-block; /* Đảm bảo tính chất khối nội dòng */
+  
+  padding: 4px 12px;     /* Tăng padding trái/phải để chữ không chạm biên */
+  height: calc(50% - 5px); /* Chia đôi chiều cao grid thành 2 hàng */
+  
+  white-space: nowrap;   /* Tuyệt đối không cho chữ xuống dòng */
+  
+  /* Các phần style giữ nguyên */
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #333;
+  color: #ddd;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+
+
 </style>
 </head>
 <body>
