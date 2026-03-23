@@ -3,69 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Editor Ultra Pro - Fixed Scroll & Full Buttons</title>
+<title>Mini Editor Ultra Pro - Full Fixed</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; background: #1a1a1a; color: white; overflow: hidden; }
   
   /* THANH CÔNG CỤ */
-  .topbar { display: flex; gap: 6px; padding: 10px; background: #111; border-bottom: 1px solid #333; align-items: center; }
-  .topbar button { padding: 8px 12px; border: none; border-radius: 6px; background: #333; color: white; cursor: pointer; font-size: 11px; }
+  .topbar { display: flex; gap: 6px; padding: 10px; background: #111; border-bottom: 1px solid #333; overflow-x: auto; align-items: center; height: 50px; }
+  .topbar button { padding: 8px 12px; border: none; border-radius: 6px; background: #333; color: white; cursor: pointer; font-size: 11px; white-space: nowrap; }
   .btn-reload { background: #ce9178 !important; color: #000 !important; font-weight: bold; }
   .btn-run { background: #28a745 !important; margin-left: auto; font-weight: bold; padding: 8px 20px !important; }
 
-  /* TAB SYSTEM */
-  .tab-bar { display: flex; background: #252526; padding-left: 10px; gap: 2px; border-bottom: 1px solid #333; user-select: none; }
-  .tab-item { padding: 8px 20px; cursor: pointer; background: #2d2d2d; color: #969696; font-size: 12px; font-weight: 500; border-radius: 5px 5px 0 0; margin-top: 5px; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; }
+  /* HỆ THỐNG TAB */
+  .tab-bar { display: flex; background: #252526; padding-left: 10px; gap: 2px; border-bottom: 1px solid #333; user-select: none; height: 40px; }
+  .tab-item { padding: 8px 20px; cursor: pointer; background: #2d2d2d; color: #969696; font-size: 12px; font-weight: 500; border-radius: 5px 5px 0 0; margin-top: 5px; display: flex; align-items: center; gap: 8px; }
   .tab-item.active { background: #1e1e1e; color: #ffffff; border-bottom: 2px solid #007acc; }
 
-  /* VÙNG CHỈNH SỬA - ĐÃ SỬA ĐỂ CUỘN THEO DÒNG */
-  .main-content { flex: 1; position: relative; overflow: hidden; background: #1e1e1e; }
-  .window-pane { display: none; height: 100%; width: 100%; }
+  /* NỘI DUNG CHÍNH */
+  .main-content { flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .window-pane { display: none; height: 100%; width: 100%; flex-direction: column; }
   .window-pane.active { display: flex; }
 
-  .editor-container { display: flex; width: 100%; height: 100%; background: #1e1e1e; overflow: hidden; }
-  
-  .line-numbers { 
-    width: 40px; 
-    padding: 15px 0; 
-    text-align: center; 
-    background: #252526; 
-    color: #858585; 
-    font-family: 'Consolas', monospace; 
-    font-size: 14px; 
-    line-height: 20px; 
-    user-select: none; 
-    overflow: hidden; /* Không cho cuộn riêng */
-  }
+  /* EDITOR SỬA LỖI CUỘN DÒNG 1 */
+  .editor-container { display: flex; flex: 1; background: #1e1e1e; overflow: hidden; position: relative; }
+  .line-numbers { width: 40px; padding: 15px 0; text-align: center; background: #252526; color: #858585; font-family: monospace; font-size: 14px; line-height: 20px; user-select: none; overflow: hidden; }
+  .line-error { color: #ff4d4d !important; font-weight: bold; background: rgba(255, 77, 77, 0.2); }
   
   textarea { 
-    flex: 1; 
-    background: transparent; 
-    color: #9cdcfe; 
-    padding: 15px; 
-    font-family: 'Consolas', monospace; 
-    font-size: 14px; 
-    line-height: 20px; 
-    border: none; 
-    outline: none; 
-    resize: none; 
-    white-space: pre; 
-    overflow: auto; /* Chỉ textarea được cuộn */
+    flex: 1; background: transparent; color: #9cdcfe; padding: 15px; 
+    font-family: 'Consolas', monospace; font-size: 14px; line-height: 20px; 
+    border: none; outline: none; resize: none; white-space: pre; 
+    overflow: auto; overscroll-behavior: contain; 
   }
 
-  /* PREVIEW & ERROR */
-  iframe { width: 100%; height: 100%; border: none; background: white; }
-  #error-log { position: absolute; bottom: 0; width: 100%; background: #4a1515; color: #ff9999; padding: 8px; font-family: monospace; font-size: 12px; z-index: 10; display: none; }
+  /* KẾT QUẢ (IFRAME 95% CĂN GIỮA) */
+  #pane-preview { align-items: center; background: #1a1a1a; }
+  iframe { 
+    width: 95%; height: 95%; border: none; background: white; 
+    margin: auto; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); 
+  }
 
-  /* POPUP PHÍM NHANH */
-  .popup { display: none; position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); width: 95%; background: #252526; border: 2px solid #0078d4; padding: 10px; z-index: 9999; border-radius: 8px; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
-  .grid { display: flex; flex-flow: column wrap; height: 100px; gap: 6px; overflow-x: auto; padding: 5px; }
-  .grid button { padding: 8px 12px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; font-size: 11px; white-space: nowrap; }
-  .line-error { color: #ff5555; font-weight: bold; background: rgba(255,0,0,0.1); }
-</style>
+  /* BÁO LỖI */
+  #error-log { display: none; background: #4a1515; color: #ff9999; padding: 10px; font-family: monospace; font-size: 12px; }
+
+  /* 2. Sửa Popup: Đảm bảo luôn nằm trên cùng */
+.popup {
+  display: none; /* Sẽ hiện flex bằng JS */
+  position: fixed;
+  bottom: 10px; /* Cách đáy một chút cho đẹp */
+  left: 50%;
+  transform: translateX(-50%); /* Căn giữa màn hình */
+  width: 95%;
+  background: #252526;
+  border: 2px solid #0078d4;
+  padding: 2px 3px;
+  z-index: 9999; /* Số lớn để luôn đè lên iframe */
+  border-radius: 8px;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+}
+
+.grid {
+  display: flex;
+  flex-flow: column wrap; /* Viết tắt của direction và wrap */
+  height: 50px; /* ĐÃ CHỈNH: Chiều cao này vừa đủ cho 2 hàng nút (tầm 40px mỗi nút + gap) */
+  gap: 6px;
+  margin-top: 5px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 3px; /* Sát mép viền */
+}
+
+/* Ẩn thanh cuộn để sát mép hơn nữa (tùy chọn) */
+.grid::-webkit-scrollbar {
+  height: 0px; 
+}
+
+.grid button {
+  flex: 0 0 auto;
+  padding: 1px 3px; 
+  height: calc(50% - 3px); /* BẮT BUỘC: Ép mỗi nút chiếm gần 50% chiều cao grid để chia đúng 2 hàng */
+  white-space: nowrap;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #333;
+  color: #ddd;
+  font-size: 12px;
+  font-weight: bold;
+  box-sizing: border-box; /* Đảm bảo padding không làm tăng chiều cao nút */
+}
+
+  
+  
+  
+  
+  </style>
 </head>
-
 <body>
 
 <div class="topbar">
@@ -87,10 +119,9 @@
     <div class="editor-container">
       <div id="line-numbers" class="line-numbers"></div>
       <textarea id="code" spellcheck="false" oninput="updateLineNumbers()" onscroll="syncScroll()"><h1>Chào mừng bạn!</h1>
-<p>Hãy vuốt xuống, số thứ tự sẽ chạy theo code.</p>
-<br><br><br><br><br><br><br><br><br><br><br>
+<p>Bạn đã có thể vuốt lên dòng 1 dễ dàng.</p>
 <script>
-  console.log("Sẵn sàng!");
+  console.log("Giao diện đã sẵn sàng!");
 </script></textarea>
     </div>
   </div>
@@ -98,14 +129,13 @@
   <div id="pane-preview" class="window-pane">
     <iframe id="preview"></iframe>
   </div>
-
   <div id="error-log"></div>
 </div>
 
 <div class="popup" id="popup">
-  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
     <b id="popup-title" style="color:#007acc; font-size:12px;">TOOLS</b>
-    <span onclick="closePopup()" style="color:red; cursor:pointer; font-weight:bold; padding: 5px;">[ĐÓNG]</span>
+    <span onclick="closePopup()" style="color:red; cursor:pointer; font-weight:bold; padding: 2px 8px;">[ĐÓNG]</span>
   </div>
   <div class="grid" id="grid"></div>
 </div>
@@ -118,32 +148,28 @@ const preview = document.getElementById("preview");
 const grid = document.getElementById("grid");
 const popup = document.getElementById("popup");
 
-// 1. ĐỒNG BỘ CUỘN TUYỆT ĐỐI
 function syncScroll() {
   lineNumbers.scrollTop = textarea.scrollTop;
 }
 
-// 2. CẬP NHẬT SỐ DÒNG
 function updateLineNumbers(errorLine = null) {
   const lines = textarea.value.split('\n').length;
   let lineStr = '';
   for (let i = 1; i <= lines; i++) {
-    lineStr += `<div class="${i === errorLine ? 'line-error' : ''}">${i}</div>`;
+    lineStr += `<div style="height:20px" class="${i === errorLine ? 'line-error' : ''}">${i}</div>`;
   }
   lineNumbers.innerHTML = lineStr;
   syncScroll();
 }
 
-// 3. CHẠY CODE
 function runCode() {
   const userCode = textarea.value;
   errorLog.style.display = "none";
-  const blobContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;}</style><script>window.onerror=function(m,u,l,c){window.parent.postMessage({type:'error',msg:m,line:l,col:c},'*');return true;};<\/script></head><body>${userCode}</body></html>`;
+  const blobContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;padding:15px;}</style><script>window.onerror=function(m,u,l,c){window.parent.postMessage({type:'error',msg:m,line:l,col:c},'*');return true;};<\/script></head><body>${userCode}</body></html>`;
   const blob = new Blob([blobContent], { type: 'text/html;charset=UTF-8' });
   preview.src = URL.createObjectURL(blob);
 }
 
-// 4. CHUYỂN TAB
 function switchTab(type) {
   document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + type).classList.add('active');
@@ -152,7 +178,6 @@ function switchTab(type) {
   if(type === 'preview') runCode();
 }
 
-// 5. DỮ LIỆU ĐẦY ĐỦ CỦA BẠN (Đã khôi phục hoàn toàn)
 const data = {
   quick: [
     {n:"Tab ⮕", a:()=>ins("  ")}, {n:"#", a:()=>ins("#")}, {n:".", a:()=>ins(".")},
@@ -201,7 +226,6 @@ const data = {
   ]
 };
 
-// CÁC HÀM XỬ LÝ CHÈN CODE
 function ins(val) {
   const s = textarea.selectionStart, e = textarea.selectionEnd;
   textarea.setRangeText(val, s, e, 'end');
@@ -231,7 +255,6 @@ function openPopup(type) {
 
 function closePopup() { popup.style.display = "none"; }
 
-// LẮNG NGHE LỖI
 window.addEventListener('message', (e) => {
   if (e.data.type === 'error') {
     errorLog.style.display = "block";
@@ -242,7 +265,8 @@ window.addEventListener('message', (e) => {
 });
 
 function resetEditor() {
-  textarea.value = "<h1>Chào mừng bạn!</h1>\n<p>Đây là giao diện dạng Sheet.</p>";
+  textarea.value = "<h1>Chào mừng bạn!</h1>\n<p>Hãy vuốt xuống để xem dòng code dài.</p>";
+  updateLineNumbers();
   runCode();
 }
 
