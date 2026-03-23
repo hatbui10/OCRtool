@@ -3,148 +3,184 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Editor Ultra Pro - Reload Version</title>
+<title>Mini Editor Ultra Pro - Tab Edition</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; background: #1a1a1a; color: white; overflow: hidden; }
   
-  /* THANH CÔNG CỤ */
-  .topbar { display: flex; gap: 6px; padding: 10px; background: #111; border-bottom: 1px solid #333; overflow-x: auto; align-items: center; }
-  .topbar button { padding: 8px 12px; border: none; border-radius: 6px; background: #333; color: white; cursor: pointer; font-size: 11px; white-space: nowrap; }
-  
-  /* Nút Load/Reset nổi bật */
+  /* THANH CÔNG CỤ TRÊN CÙNG */
+  .topbar { display: flex; gap: 6px; padding: 10px; background: #111; border-bottom: 1px solid #333; align-items: center; }
+  .topbar button { padding: 8px 12px; border: none; border-radius: 6px; background: #333; color: white; cursor: pointer; font-size: 11px; }
   .btn-reload { background: #ce9178 !important; color: #000 !important; font-weight: bold; }
   .btn-run { background: #28a745 !important; margin-left: auto; font-weight: bold; padding: 8px 20px !important; }
 
-  /* KHU VỰC EDITOR */
-  
- /* Ép khu vực chính không được tràn */
-.main { 
+  /* HỆ THỐNG TAB KIỂU EXCEL */
+ /* --- HỆ THỐNG TAB NÂNG CẤP --- */
+.tab-bar { 
   display: flex; 
-  flex-direction: column; 
-  height: calc(100vh - 50px); /* Trừ đi chiều cao topbar */
-  overflow: hidden; 
-}
-  
-  .editor-container {
-  display: flex;         /* Đưa STT và Code nằm dàn hàng ngang trở lại */
-  height: 45%; 
-  background: #1e1e1e; 
-  border-bottom: 2px solid #333;
-  overflow-y: auto;      /* Cho phép cuộn dọc toàn bộ khung code */
-  overflow-x: auto;      /* Cho phép cuộn ngang nếu dòng code quá dài */
+  background: #252526; 
+  padding-left: 10px;
+  gap: 2px;
+  border-bottom: 1px solid #333;
+  user-select: none;
 }
 
-  
-  .line-numbers { width: 35px; padding: 15px 0; text-align: center; background: #252526; color: #858585; font-family: monospace; font-size: 13px; line-height: 20px; user-select: none; }
-  .line-error { color: #ff4d4d !important; font-weight: bold; background: rgba(255, 77, 77, 0.3); }
-  textarea { flex: 1; background: transparent; color: #9cdcfe; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; line-height: 20px; border: none; outline: none; resize: none; white-space: pre; overflow: auto; }
-
-  /* BÁO LỖI & PREVIEW */
-  #error-log { display: none; background: #4a1515; color: #ff9999; padding: 10px; font-family: monospace; font-size: 12px; border-bottom: 1px solid #ff4d4d; }
-  /* Trạng thái bình thường */
-/* 1. Sửa Iframe: Dùng Block và đảm bảo không đè lên cái khác */
-iframe {
-  display: block;
-  height: calc(55vh - 100px); /* Tăng trừ đi để chừa chỗ cho thanh công cụ */
-  width: 95%; 
-  background: white; /* Ép nền trắng để không bị đen xì */
-  border: none;
-  margin: 10px auto;
-  border-radius: 8px;
-  position: relative;
-  z-index: 1; /* Thấp hơn popup */
-}
-
-/* Khi popup đang mở, iframe sẽ ngắn lại */
-iframe.shrink {
-  height: calc(55vh - 120px); /* Trừ thêm phần diện tích popup chiếm dụng */
-}
-
-
-  
-  
-  
-  /* 2. Sửa Popup: Đảm bảo luôn nằm trên cùng */
-.popup {
-  display: none; /* Sẽ hiện flex bằng JS */
-  position: fixed;
-  bottom: 10px; /* Cách đáy một chút cho đẹp */
-  left: 50%;
-  transform: translateX(-50%); /* Căn giữa màn hình */
-  width: 95%;
-  background: #252526;
-  border: 2px solid #0078d4;
-  padding: 2px 3px;
-  z-index: 9999; /* Số lớn để luôn đè lên iframe */
-  border-radius: 8px;
-  box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
-}
-
-.grid {
-  display: flex;
-  flex-flow: column wrap; /* Viết tắt của direction và wrap */
-  height: 50px; /* ĐÃ CHỈNH: Chiều cao này vừa đủ cho 2 hàng nút (tầm 40px mỗi nút + gap) */
-  gap: 6px;
+.tab-item { 
+  padding: 8px 20px; 
+  cursor: pointer; 
+  background: #2d2d2d; 
+  color: #969696; 
+  font-size: 12px; 
+  font-weight: 500; 
+  border-radius: 5px 5px 0 0; /* Bo góc trên giống sheet */
   margin-top: 5px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 3px; /* Sát mép viền */
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-bottom: none;
 }
 
-/* Ẩn thanh cuộn để sát mép hơn nữa (tùy chọn) */
-.grid::-webkit-scrollbar {
-  height: 0px; 
+/* Hiệu ứng khi di chuột qua */
+.tab-item:hover { 
+  background: #37373d; 
+  color: #e1e1e1; 
 }
 
-.grid button {
-  flex: 0 0 auto;
-  padding: 1px 3px; 
-  height: calc(50% - 3px); /* BẮT BUỘC: Ép mỗi nút chiếm gần 50% chiều cao grid để chia đúng 2 hàng */
-  white-space: nowrap;
-  border: 1px solid #444;
-  border-radius: 4px;
+/* Trạng thái Tab đang hoạt động */
+.tab-item.active { 
+  background: #1e1e1e; 
+  color: #ffffff; 
+  border: 1px solid #333;
+  border-bottom: 2px solid #007acc; /* Thanh màu xanh đặc trưng */
+  position: relative;
+  z-index: 2;
+}
+
+/* Thêm icon giả lập bằng CSS cho đẹp */
+.tab-item::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+#tab-editor::before { background: #e34f26; } /* Màu cam cho Code */
+#tab-preview::before { background: #28a745; } /* Màu xanh cho Kết quả */
+
+/* --- KHU VỰC NỘI DUNG --- */
+.main-content { 
+  flex: 1; 
+  background: #1e1e1e;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); /* Tạo độ sâu */
+}
+
+/* Làm mượt việc ẩn hiện cửa sổ */
+.window-pane { 
+  display: none; 
+  height: 100%; 
+  width: 100%; 
+  animation: fadeIn 0.3s ease; /* Hiệu ứng hiện ra mượt */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tinh chỉnh lại thanh cuộn (Scrollbar) cho hiện đại */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+::-webkit-scrollbar-thumb {
   background: #333;
-  color: #ddd;
-  font-size: 12px;
-  font-weight: bold;
-  box-sizing: border-box; /* Đảm bảo padding không làm tăng chiều cao nút */
+  border-radius: 5px;
+  border: 2px solid #1e1e1e;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
 }
 
+
+
+
+  /* VÙNG HIỂN THỊ NỘI DUNG */
+  .main-content { flex: 1; position: relative; overflow: hidden; }
   
-  
-  </style>
+  /* Cửa sổ Code */
+  .window-pane { display: none; height: 100%; width: 100%; }
+  .window-pane.active { display: flex; }
+
+  .editor-container { display: flex; width: 100%; height: 100%; background: #1e1e1e; overflow: auto; }
+  .line-numbers { width: 35px; padding: 15px 0; text-align: center; background: #252526; color: #858585; font-family: monospace; font-size: 13px; line-height: 20px; user-select: none; }
+  textarea { flex: 1; background: transparent; color: #9cdcfe; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; line-height: 20px; border: none; outline: none; resize: none; white-space: pre; }
+
+  /* Cửa sổ Preview (Iframe) */
+  iframe { width: 100%; height: 100%; border: none; background: white; }
+
+  /* BÁO LỖI */
+  #error-log { position: absolute; bottom: 0; width: 100%; background: #4a1515; color: #ff9999; padding: 8px; font-family: monospace; font-size: 12px; z-index: 10; display: none; }
+
+  /* POPUP PHÍM NHANH */
+  .popup { display: none; position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); width: 95%; background: #252526; border: 2px solid #0078d4; padding: 5px; z-index: 9999; border-radius: 8px; }
+  .grid { display: flex; flex-flow: column wrap; height: 60px; gap: 6px; overflow-x: auto; padding: 5px; }
+  .grid button { padding: 5px 10px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; font-size: 11px; }
+</style>
 </head>
+
+
+
+
+
+
 <body>
 
 <div class="topbar">
   <button class="btn-reload" onclick="resetEditor()">🔄 Reset</button>
-  
   <button onclick="openPopup('quick')">⌨️ Phím nhanh</button>
   <button onclick="openPopup('html')">HTML</button>
   <button onclick="openPopup('css')">CSS</button>
   <button onclick="openPopup('js')">JS</button>
-  <button class="btn-run" onclick="runCode()">CHẠY ▶</button>
+  <button class="btn-run" onclick="runCode()">CHẠY & XEM ▶</button>
 </div>
 
-<div class="main">
-  <div class="editor-container">
-    <div id="line-numbers" class="line-numbers"></div>
-    <textarea id="code" spellcheck="false" oninput="updateLineNumbers()" onscroll="syncScroll()"><h1>Chào bạn!</h1>
+<div class="tab-bar">
+  <div class="tab-item active" id="tab-editor" onclick="switchTab('editor')">📄 CHỈNH SỬA CODE</div>
+  <div class="tab-item" id="tab-preview" onclick="switchTab('preview')">👁️ KẾT QUẢ (PREVIEW)</div>
+</div>
+
+<div class="main-content">
+  <div id="pane-editor" class="window-pane active">
+    <div class="editor-container">
+      <div id="line-numbers" class="line-numbers"></div>
+      <textarea id="code" spellcheck="false" oninput="updateLineNumbers()" onscroll="syncScroll()"><h1>Chào mừng bạn!</h1>
+<p>Đây là giao diện dạng Sheet.</p>
+
+
+
+
 <script>
-  console.log("Sẵn sàng code");
-</script></textarea>
+  console.log("Đã chuyển sang tab Code");
+</script>
+
+
+</textarea>
+    </div>
   </div>
+
+  <div id="pane-preview" class="window-pane">
+    <iframe id="preview"></iframe>
+  </div>
+
   <div id="error-log"></div>
-  <iframe id="preview"></iframe>
 </div>
 
 <div class="popup" id="popup">
-  <div style="display:flex; justify-content: space-between; margin-bottom: 5px;">
-    
-     <span onclick="closePopup()" style="color:red; cursor:pointer; font-weight:bold;">[X]</span>
-    
-  </div>
+  <div style="text-align: right;"><span onclick="closePopup()" style="color:red; cursor:pointer; font-weight:bold; padding: 5px;">[ĐÓNG]</span></div>
   <div class="grid" id="grid"></div>
 </div>
 
@@ -156,194 +192,87 @@ const preview = document.getElementById("preview");
 const grid = document.getElementById("grid");
 const popup = document.getElementById("popup");
 
-// Nội dung mặc định khi Reset
-const defaultCode = `<h1>Chào bạn!</h1>\n<script>\n  console.log("Sẵn sàng code");\n<\/script>`;
+// CHUYỂN TAB
+function switchTab(type) {
+  // Xử lý nút tab
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + type).classList.add('active');
 
-/* HÀM RESET VỀ MẶC ĐỊNH */
-function resetEditor() {
-  
-    textarea.value = defaultCode;
-    errorLog.style.display = "none";
-    updateLineNumbers();
-    runCode();
-  
+  // Xử lý nội dung hiển thị
+  document.querySelectorAll('.window-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + type).classList.add('active');
+
+  // Nếu chuyển sang tab preview, tự động chạy code luôn cho mới
+  if(type === 'preview') runCode();
 }
 
-/* CÁC HÀM CHÈN KÝ TỰ (GIỮ NGUYÊN TỪ BẢN TRƯỚC) */
+function runCode() {
+  const userCode = textarea.value;
+  errorLog.style.display = "none";
+  updateLineNumbers();
+
+  // THÊM DÒNG NÀY: Chèn meta charset vào đầu Iframe
+  const blobContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8"> <style>body{font-family:sans-serif;}</style>
+        <script>
+          window.onerror=function(m,u,l,c){
+            window.parent.postMessage({type:'error',msg:m,line:l,col:c},'*');
+            return true;
+          };
+        <\/script>
+      </head>
+      <body>${userCode}</body>
+    </html>`;
+
+  const blob = new Blob([blobContent], { type: 'text/html;charset=UTF-8' }); // Thêm charset ở đây nữa cho chắc
+  preview.src = URL.createObjectURL(blob);
+}
+
+
+
+// Giữ nguyên các hàm insert, wrap, popup của bạn...
 const data = {
-  quick: [
-  /* --- NHÓM KÝ TỰ MỚI TỪ ẢNH CỦA BẠN --- */
-  {n:"Tab ⮕", a:()=>ins("  ")},
-  {n:"#", a:()=>ins("#")},
-  {n:".", a:()=>ins(".")},
-  {n:"(", a:()=>ins("(")},
-  {n:")", a:()=>ins(")")},
-  {n:"&", a:()=>ins("&")},
-  
-
-  /* --- NHÓM COMMENT (CHÚ THÍCH) PHÂN LOẠI --- */
-  // Chú thích HTML: {n:"", a:()=>ins("")},
-  
-  // Chú thích CSS: /* */
-  {n:"/* CSS */", a:()=>ins("/* */")},
-  
-  // Chú thích JS: // hoặc /* */
-  {n:"// JS", a:()=>ins("// ")},
-  {n:"/* JS-Khối */", a:()=>ins("/* */")},
-
-  /* --- CÁC PHÍM NHANH KHÁC --- */
-  {n:"_", a:()=>ins("_")},
-  {n:"<", a:()=>ins("<")},
-  {n:">", a:()=>ins(">")},
-  {n:";", a:()=>ins(";")},
-  {n:"' '", a:()=>ins("''")},
-  {n:'" "', a:()=>ins('""')}
-],
-
-  
-  
-  html: [
-    /* Nhóm thuộc tính (Nút mới) */
-    {n:'id=""', a:()=>ins('id=""')},
-    {n:'class=""', a:()=>ins('class=""')},
-    {n:'src=""', a:()=>ins('src=""')},
-    {n:'href=""', a:()=>ins('href=""')},
-    {n:'style=""', a:()=>ins('style=""')},
-    {n:'type=""', a:()=>ins('type=""')},
-    {n:'alt=""', a:()=>ins('alt=""')},
-    
-    /* Nhóm thẻ (Thẻ bao quanh) */
-    {n:"<div>", a:()=>wrap("<div>","</div>")},
-    {n:"<span>", a:()=>wrap("<span>","</span>")},
-    {n:"<h1>", a:()=>wrap("<h1>","</h1>")},
-    {n:"<p>", a:()=>wrap("<p>","</p>")},
-    {n:"<a>", a:()=>wrap("<a>","</a>")},
-    {n:"<img>", a:()=>ins('<img src="" alt="">')},
-    {n:"<script>", a:()=>wrap("<script>\n","\n<\/script>")},
-    {n:"<style>", a:()=>wrap("<style>\n","\n</style>")}
-  ],
-  
-   css: [
-    /* --- NHÓM CHỮ (FONT & TEXT) --- */
-    {n:"f-size", a:()=>ins("font-size: 16px;")},
-    {n:"f-bold", a:()=>ins("font-weight: bold;")},
-    {n:"color", a:()=>ins('color: #ffffff;')},
-    {n:"t-center", a:()=>ins("text-align: center;")},
-    {n:"l-height", a:()=>ins("line-height: 1.5;")},
-    {n:"family", a:()=>ins("font-family: sans-serif;")},
-    {n:"shadow", a:()=>ins("text-shadow: 2px 2px 4px rgba(0,0,0,0.5);")},
-
-    /* --- NHÓM BỐ CỤC (LAYOUT) --- */
-    {n:"flex", a:()=>ins("display: flex;")},
-    {n:"column", a:()=>ins("flex-direction: column;")},
-    {n:"center", a:()=>ins("justify-content: center; align-items: center;")},
-    {n:"grid", a:()=>ins("display: grid; grid-template-columns: 1fr 1fr;")},
-    {n:"gap", a:()=>ins("gap: 10px;")},
-    {n:"fixed", a:()=>ins("position: fixed; top: 0; left: 0; right: 0; z-index: 1000;")},
-    {n:"absolute", a:()=>ins("position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);")},
-
-    /* --- NHÓM KHUNG (BOX MODEL) --- */
-    {n:"width", a:()=>ins("width: 100%;")},
-    {n:"height", a:()=>ins("height: 100vh;")},
-    {n:"padding", a:()=>ins("padding: 10px;")},
-    {n:"margin", a:()=>ins("margin: 10px;")},
-    {n:"border", a:()=>ins("border: 1px solid #444;")},
-    {n:"radius", a:()=>ins("border-radius: 8px;")},
-    {n:"bg-color", a:()=>ins("background-color: #1e1e1e;")},
-    {n:"overflow", a:()=>ins("overflow: hidden;")},
-    {n:"box-sizing", a:()=>ins("box-sizing: border-box;")}
-  ],
-
-  
-  
-    js: [
-    /* Nhóm cơ bản bạn vừa gửi */
-    {n:"log", a:()=>ins('console.log("");')},
-    {n:"alert", a:()=>ins('alert("");')},
-    {n:"if else", a:()=>ins('if () {\n  \n} else {\n  \n}')},
-    {n:"function", a:()=>ins('function name() {\n  \n}')},
-    {n:"for", a:()=>ins('for (let i = 0; i < 10; i++) {\n  \n}')},
-    {n:"getById", a:()=>ins('document.getElementById("");')},
-    {n:"querySelector", a:()=>ins('document.querySelector("");')},
-
-    /* Nhóm bổ sung nâng cao */
-    {n:".focus()", a:()=>ins('.focus();')},
-    {n:".value", a:()=>ins('.value')},
-    {n:".innerHTML", a:()=>ins('.innerHTML = "";')},
-    {n:".innerText", a:()=>ins('.innerText = "";')},
-    {n:".style", a:()=>ins('.style.')},
-    {n:"addEvent", a:()=>ins('.addEventListener("", () => {\n  \n});')}
-  ],
-
-
+  quick: [{n:"Tab", a:()=>ins("  ")}, {n:"#", a:()=>ins("#")}, {n:".", a:()=>ins(".")}, {n:"(", a:()=>ins("(")}, {n:")", a:()=>ins(")")}],
+  html: [{n:"<div>", a:()=>wrap("<div>","</div>")}, {n:"<h1>", a:()=>wrap("<h1>","</h1>")}, {n:"<a>", a:()=>wrap("<a href=''>","</a>")}],
+  css: [{n:"color", a:()=>ins("color: red;")}, {n:"flex", a:()=>ins("display: flex;")}],
+  js: [{n:"log", a:()=>ins('console.log("");')}, {n:"alert", a:()=>ins('alert("");')}]
 };
 
 function ins(val) {
   const s = textarea.selectionStart;
   const e = textarea.selectionEnd;
   textarea.setRangeText(val, s, e, 'end');
-  
-  // 1. Kiểm tra nếu là các thuộc tính HTML có dấu "" (id="", class="",...)
-  if (val.includes('=""')) {
-    // Tìm vị trí của dấu nháy kép đầu tiên trong chuỗi vừa chèn và cộng thêm 1
-    const pos = val.indexOf('""') + 1;
-    textarea.selectionStart = textarea.selectionEnd = s + pos;
-  } 
-  // 2. Kiểm tra các cặp ngoặc đơn giản (bộ phím nhanh)
-  else if (["()", "{}", "[]", "''", '""'].includes(val)) {
-    textarea.selectionStart = textarea.selectionEnd = s + 1;
-  }
-  // 3. Kiểm tra thẻ tự đóng có dấu nháy (ví dụ: <img src="" />)
-  else if (val.includes('src=""')) {
-    const pos = val.indexOf('src="') + 5;
-    textarea.selectionStart = textarea.selectionEnd = s + pos;
-  }
-  // 4. Kiểm tra Comment
-  else if (val === "") {
-    textarea.selectionStart = textarea.selectionEnd = s + 5;
-  }
-  
   textarea.focus();
   updateLineNumbers();
 }
-
 
 function wrap(open, close) {
   const s = textarea.selectionStart;
   const e = textarea.selectionEnd;
   const sel = textarea.value.substring(s, e);
   textarea.setRangeText(open + sel + close, s, e, 'end');
-  if (s === e) { textarea.selectionStart = textarea.selectionEnd = s + open.length; }
   textarea.focus();
   updateLineNumbers();
 }
 
 function openPopup(type) {
-  // 1. Hiện popup và thu nhỏ iframe
-  document.getElementById("popup").style.display = "flex";
-  document.querySelector("iframe").classList.add("shrink");
-
-  // 2. Xóa sạch các nút cũ trong grid trước khi nạp mới
+  popup.style.display = "block";
   grid.innerHTML = '';
-
-  // 3. Lấy dữ liệu từ biến 'data' dựa trên cái 'type' (html, css, js hoặc quick)
   if (data[type]) {
     data[type].forEach(item => {
       const btn = document.createElement('button');
-      btn.innerText = item.n; // Đặt tên nút
-      btn.onclick = item.a;   // Gán hàm chèn code khi bấm
-      grid.appendChild(btn);  // Cho vào grid
+      btn.innerText = item.n;
+      btn.onclick = item.a;
+      grid.appendChild(btn);
     });
   }
 }
 
+function closePopup() { popup.style.display = "none"; }
 
-function closePopup() {
-  document.getElementById("popup").style.display = "none";
-  document.querySelector("iframe").classList.remove("shrink"); // Trả lại kích thước cũ
-}
-
-/* LOGIC SỐ DÒNG & RUN */
 function updateLineNumbers(errorLine = null) {
   const lines = textarea.value.split('\n').length;
   let lineStr = '';
@@ -352,27 +281,24 @@ function updateLineNumbers(errorLine = null) {
   }
   lineNumbers.innerHTML = lineStr;
 }
-function syncScroll() { lineNumbers.scrollTop = textarea.scrollTop; }
 
-function runCode() {
-  const userCode = textarea.value;
-  errorLog.style.display = "none";
-  updateLineNumbers();
-  const blobContent = `<!DOCTYPE html><html><head><script>window.onerror=function(m,u,l,c){window.parent.postMessage({type:'error',msg:m,line:l-0,col:c},'*');return true;};<\/script></head><body>${userCode}</body></html>`;
-  const blob = new Blob([blobContent], { type: 'text/html' });
-  preview.src = URL.createObjectURL(blob);
-}
+function syncScroll() { lineNumbers.scrollTop = textarea.scrollTop; }
 
 window.addEventListener('message', (e) => {
   if (e.data.type === 'error') {
     errorLog.style.display = "block";
-    errorLog.innerHTML = `⚠️ <b>LỖI:</b> ${e.data.msg} <br> [Dòng: ${e.data.line}, Cột: ${e.data.col}]`;
+    errorLog.innerHTML = `⚠️ Lỗi: ${e.data.msg} (Dòng ${e.data.line})`;
+    switchTab('editor'); // Tự chuyển về tab code khi có lỗi
     updateLineNumbers(e.data.line);
   }
 });
 
+function resetEditor() {
+    textarea.value = "<h1>Chào mừng bạn!</h1>\n<p>Đây là giao diện dạng Sheet.</p>";
+    runCode();
+}
+
 updateLineNumbers();
-runCode();
 </script>
 </body>
 </html>
