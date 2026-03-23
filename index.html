@@ -234,11 +234,113 @@ function runCode() {
 
 
 // Giữ nguyên các hàm insert, wrap, popup của bạn...
+/* CÁC HÀM CHÈN KÝ TỰ (GIỮ NGUYÊN TỪ BẢN TRƯỚC) */
 const data = {
-  quick: [{n:"Tab", a:()=>ins("  ")}, {n:"#", a:()=>ins("#")}, {n:".", a:()=>ins(".")}, {n:"(", a:()=>ins("(")}, {n:")", a:()=>ins(")")}],
-  html: [{n:"<div>", a:()=>wrap("<div>","</div>")}, {n:"<h1>", a:()=>wrap("<h1>","</h1>")}, {n:"<a>", a:()=>wrap("<a href=''>","</a>")}],
-  css: [{n:"color", a:()=>ins("color: red;")}, {n:"flex", a:()=>ins("display: flex;")}],
-  js: [{n:"log", a:()=>ins('console.log("");')}, {n:"alert", a:()=>ins('alert("");')}]
+  quick: [
+  /* --- NHÓM KÝ TỰ MỚI TỪ ẢNH CỦA BẠN --- */
+  {n:"Tab ⮕", a:()=>ins("  ")},
+  {n:"#", a:()=>ins("#")},
+  {n:".", a:()=>ins(".")},
+  {n:"(", a:()=>ins("(")},
+  {n:")", a:()=>ins(")")},
+  {n:"&", a:()=>ins("&")},
+  
+
+  /* --- NHÓM COMMENT (CHÚ THÍCH) PHÂN LOẠI --- */
+  // Chú thích HTML: {n:"", a:()=>ins("")},
+  
+  // Chú thích CSS: /* */
+  {n:"/* CSS */", a:()=>ins("/* */")},
+  
+  // Chú thích JS: // hoặc /* */
+  {n:"// JS", a:()=>ins("// ")},
+  {n:"/* JS-Khối */", a:()=>ins("/* */")},
+
+  /* --- CÁC PHÍM NHANH KHÁC --- */
+  {n:"_", a:()=>ins("_")},
+  {n:"<", a:()=>ins("<")},
+  {n:">", a:()=>ins(">")},
+  {n:";", a:()=>ins(";")},
+  {n:"' '", a:()=>ins("''")},
+  {n:'" "', a:()=>ins('""')}
+],
+
+  
+  
+  html: [
+    /* Nhóm thuộc tính (Nút mới) */
+    {n:'id=""', a:()=>ins('id=""')},
+    {n:'class=""', a:()=>ins('class=""')},
+    {n:'src=""', a:()=>ins('src=""')},
+    {n:'href=""', a:()=>ins('href=""')},
+    {n:'style=""', a:()=>ins('style=""')},
+    {n:'type=""', a:()=>ins('type=""')},
+    {n:'alt=""', a:()=>ins('alt=""')},
+    
+    /* Nhóm thẻ (Thẻ bao quanh) */
+    {n:"<div>", a:()=>wrap("<div>","</div>")},
+    {n:"<span>", a:()=>wrap("<span>","</span>")},
+    {n:"<h1>", a:()=>wrap("<h1>","</h1>")},
+    {n:"<p>", a:()=>wrap("<p>","</p>")},
+    {n:"<a>", a:()=>wrap("<a>","</a>")},
+    {n:"<img>", a:()=>ins('<img src="" alt="">')},
+    {n:"<script>", a:()=>wrap("<script>\n","\n<\/script>")},
+    {n:"<style>", a:()=>wrap("<style>\n","\n</style>")}
+  ],
+  
+   css: [
+    /* --- NHÓM CHỮ (FONT & TEXT) --- */
+    {n:"f-size", a:()=>ins("font-size: 16px;")},
+    {n:"f-bold", a:()=>ins("font-weight: bold;")},
+    {n:"color", a:()=>ins('color: #ffffff;')},
+    {n:"t-center", a:()=>ins("text-align: center;")},
+    {n:"l-height", a:()=>ins("line-height: 1.5;")},
+    {n:"family", a:()=>ins("font-family: sans-serif;")},
+    {n:"shadow", a:()=>ins("text-shadow: 2px 2px 4px rgba(0,0,0,0.5);")},
+
+    /* --- NHÓM BỐ CỤC (LAYOUT) --- */
+    {n:"flex", a:()=>ins("display: flex;")},
+    {n:"column", a:()=>ins("flex-direction: column;")},
+    {n:"center", a:()=>ins("justify-content: center; align-items: center;")},
+    {n:"grid", a:()=>ins("display: grid; grid-template-columns: 1fr 1fr;")},
+    {n:"gap", a:()=>ins("gap: 10px;")},
+    {n:"fixed", a:()=>ins("position: fixed; top: 0; left: 0; right: 0; z-index: 1000;")},
+    {n:"absolute", a:()=>ins("position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);")},
+
+    /* --- NHÓM KHUNG (BOX MODEL) --- */
+    {n:"width", a:()=>ins("width: 100%;")},
+    {n:"height", a:()=>ins("height: 100vh;")},
+    {n:"padding", a:()=>ins("padding: 10px;")},
+    {n:"margin", a:()=>ins("margin: 10px;")},
+    {n:"border", a:()=>ins("border: 1px solid #444;")},
+    {n:"radius", a:()=>ins("border-radius: 8px;")},
+    {n:"bg-color", a:()=>ins("background-color: #1e1e1e;")},
+    {n:"overflow", a:()=>ins("overflow: hidden;")},
+    {n:"box-sizing", a:()=>ins("box-sizing: border-box;")}
+  ],
+
+  
+  
+    js: [
+    /* Nhóm cơ bản bạn vừa gửi */
+    {n:"log", a:()=>ins('console.log("");')},
+    {n:"alert", a:()=>ins('alert("");')},
+    {n:"if else", a:()=>ins('if () {\n  \n} else {\n  \n}')},
+    {n:"function", a:()=>ins('function name() {\n  \n}')},
+    {n:"for", a:()=>ins('for (let i = 0; i < 10; i++) {\n  \n}')},
+    {n:"getById", a:()=>ins('document.getElementById("");')},
+    {n:"querySelector", a:()=>ins('document.querySelector("");')},
+
+    /* Nhóm bổ sung nâng cao */
+    {n:".focus()", a:()=>ins('.focus();')},
+    {n:".value", a:()=>ins('.value')},
+    {n:".innerHTML", a:()=>ins('.innerHTML = "";')},
+    {n:".innerText", a:()=>ins('.innerText = "";')},
+    {n:".style", a:()=>ins('.style.')},
+    {n:"addEvent", a:()=>ins('.addEventListener("", () => {\n  \n});')}
+  ],
+
+
 };
 
 function ins(val) {
