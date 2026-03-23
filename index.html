@@ -3,139 +3,68 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Editor Ultra Pro - Tab Edition</title>
+<title>Mini Editor Ultra Pro - Fixed Scroll & Full Buttons</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; background: #1a1a1a; color: white; overflow: hidden; }
   
-  /* THANH CÔNG CỤ TRÊN CÙNG */
+  /* THANH CÔNG CỤ */
   .topbar { display: flex; gap: 6px; padding: 10px; background: #111; border-bottom: 1px solid #333; align-items: center; }
   .topbar button { padding: 8px 12px; border: none; border-radius: 6px; background: #333; color: white; cursor: pointer; font-size: 11px; }
   .btn-reload { background: #ce9178 !important; color: #000 !important; font-weight: bold; }
   .btn-run { background: #28a745 !important; margin-left: auto; font-weight: bold; padding: 8px 20px !important; }
 
-  /* HỆ THỐNG TAB KIỂU EXCEL */
- /* --- HỆ THỐNG TAB NÂNG CẤP --- */
-.tab-bar { 
-  display: flex; 
-  background: #252526; 
-  padding-left: 10px;
-  gap: 2px;
-  border-bottom: 1px solid #333;
-  user-select: none;
-}
+  /* TAB SYSTEM */
+  .tab-bar { display: flex; background: #252526; padding-left: 10px; gap: 2px; border-bottom: 1px solid #333; user-select: none; }
+  .tab-item { padding: 8px 20px; cursor: pointer; background: #2d2d2d; color: #969696; font-size: 12px; font-weight: 500; border-radius: 5px 5px 0 0; margin-top: 5px; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; }
+  .tab-item.active { background: #1e1e1e; color: #ffffff; border-bottom: 2px solid #007acc; }
 
-.tab-item { 
-  padding: 8px 20px; 
-  cursor: pointer; 
-  background: #2d2d2d; 
-  color: #969696; 
-  font-size: 12px; 
-  font-weight: 500; 
-  border-radius: 5px 5px 0 0; /* Bo góc trên giống sheet */
-  margin-top: 5px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid transparent;
-  border-bottom: none;
-}
-
-/* Hiệu ứng khi di chuột qua */
-.tab-item:hover { 
-  background: #37373d; 
-  color: #e1e1e1; 
-}
-
-/* Trạng thái Tab đang hoạt động */
-.tab-item.active { 
-  background: #1e1e1e; 
-  color: #ffffff; 
-  border: 1px solid #333;
-  border-bottom: 2px solid #007acc; /* Thanh màu xanh đặc trưng */
-  position: relative;
-  z-index: 2;
-}
-
-/* Thêm icon giả lập bằng CSS cho đẹp */
-.tab-item::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-#tab-editor::before { background: #e34f26; } /* Màu cam cho Code */
-#tab-preview::before { background: #28a745; } /* Màu xanh cho Kết quả */
-
-/* --- KHU VỰC NỘI DUNG --- */
-.main-content { 
-  flex: 1; 
-  background: #1e1e1e;
-  box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); /* Tạo độ sâu */
-}
-
-/* Làm mượt việc ẩn hiện cửa sổ */
-.window-pane { 
-  display: none; 
-  height: 100%; 
-  width: 100%; 
-  animation: fadeIn 0.3s ease; /* Hiệu ứng hiện ra mượt */
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Tinh chỉnh lại thanh cuộn (Scrollbar) cho hiện đại */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: #1e1e1e;
-}
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 5px;
-  border: 2px solid #1e1e1e;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #444;
-}
-
-
-
-
-  /* VÙNG HIỂN THỊ NỘI DUNG */
-  .main-content { flex: 1; position: relative; overflow: hidden; }
-  
-  /* Cửa sổ Code */
+  /* VÙNG CHỈNH SỬA - ĐÃ SỬA ĐỂ CUỘN THEO DÒNG */
+  .main-content { flex: 1; position: relative; overflow: hidden; background: #1e1e1e; }
   .window-pane { display: none; height: 100%; width: 100%; }
   .window-pane.active { display: flex; }
 
-  .editor-container { display: flex; width: 100%; height: 100%; background: #1e1e1e; overflow: auto; }
-  .line-numbers { width: 35px; padding: 15px 0; text-align: center; background: #252526; color: #858585; font-family: monospace; font-size: 13px; line-height: 20px; user-select: none; }
-  textarea { flex: 1; background: transparent; color: #9cdcfe; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; line-height: 20px; border: none; outline: none; resize: none; white-space: pre; }
+  .editor-container { display: flex; width: 100%; height: 100%; background: #1e1e1e; overflow: hidden; }
+  
+  .line-numbers { 
+    width: 40px; 
+    padding: 15px 0; 
+    text-align: center; 
+    background: #252526; 
+    color: #858585; 
+    font-family: 'Consolas', monospace; 
+    font-size: 14px; 
+    line-height: 20px; 
+    user-select: none; 
+    overflow: hidden; /* Không cho cuộn riêng */
+  }
+  
+  textarea { 
+    flex: 1; 
+    background: transparent; 
+    color: #9cdcfe; 
+    padding: 15px; 
+    font-family: 'Consolas', monospace; 
+    font-size: 14px; 
+    line-height: 20px; 
+    border: none; 
+    outline: none; 
+    resize: none; 
+    white-space: pre; 
+    overflow: auto; /* Chỉ textarea được cuộn */
+  }
 
-  /* Cửa sổ Preview (Iframe) */
+  /* PREVIEW & ERROR */
   iframe { width: 100%; height: 100%; border: none; background: white; }
-
-  /* BÁO LỖI */
   #error-log { position: absolute; bottom: 0; width: 100%; background: #4a1515; color: #ff9999; padding: 8px; font-family: monospace; font-size: 12px; z-index: 10; display: none; }
 
   /* POPUP PHÍM NHANH */
-  .popup { display: none; position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); width: 95%; background: #252526; border: 2px solid #0078d4; padding: 5px; z-index: 9999; border-radius: 8px; }
-  .grid { display: flex; flex-flow: column wrap; height: 60px; gap: 6px; overflow-x: auto; padding: 5px; }
-  .grid button { padding: 5px 10px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; font-size: 11px; }
+  .popup { display: none; position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); width: 95%; background: #252526; border: 2px solid #0078d4; padding: 10px; z-index: 9999; border-radius: 8px; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
+  .grid { display: flex; flex-flow: column wrap; height: 100px; gap: 6px; overflow-x: auto; padding: 5px; }
+  .grid button { padding: 8px 12px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; font-size: 11px; white-space: nowrap; }
+  .line-error { color: #ff5555; font-weight: bold; background: rgba(255,0,0,0.1); }
 </style>
 </head>
-
-
-
-
-
 
 <body>
 
@@ -150,7 +79,7 @@
 
 <div class="tab-bar">
   <div class="tab-item active" id="tab-editor" onclick="switchTab('editor')">📄 CHỈNH SỬA CODE</div>
-  <div class="tab-item" id="tab-preview" onclick="switchTab('preview')">👁️ KẾT QUẢ (PREVIEW)</div>
+  <div class="tab-item" id="tab-preview" onclick="switchTab('preview')">👁️ KẾT QUẢ</div>
 </div>
 
 <div class="main-content">
@@ -158,17 +87,11 @@
     <div class="editor-container">
       <div id="line-numbers" class="line-numbers"></div>
       <textarea id="code" spellcheck="false" oninput="updateLineNumbers()" onscroll="syncScroll()"><h1>Chào mừng bạn!</h1>
-<p>Đây là giao diện dạng Sheet.</p>
-
-
-
-
+<p>Hãy vuốt xuống, số thứ tự sẽ chạy theo code.</p>
+<br><br><br><br><br><br><br><br><br><br><br>
 <script>
-  console.log("Đã chuyển sang tab Code");
-</script>
-
-
-</textarea>
+  console.log("Sẵn sàng!");
+</script></textarea>
     </div>
   </div>
 
@@ -180,7 +103,10 @@
 </div>
 
 <div class="popup" id="popup">
-  <div style="text-align: right;"><span onclick="closePopup()" style="color:red; cursor:pointer; font-weight:bold; padding: 5px;">[ĐÓNG]</span></div>
+  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <b id="popup-title" style="color:#007acc; font-size:12px;">TOOLS</b>
+    <span onclick="closePopup()" style="color:red; cursor:pointer; font-weight:bold; padding: 5px;">[ĐÓNG]</span>
+  </div>
   <div class="grid" id="grid"></div>
 </div>
 
@@ -192,168 +118,99 @@ const preview = document.getElementById("preview");
 const grid = document.getElementById("grid");
 const popup = document.getElementById("popup");
 
-// CHUYỂN TAB
-function switchTab(type) {
-  // Xử lý nút tab
-  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + type).classList.add('active');
-
-  // Xử lý nội dung hiển thị
-  document.querySelectorAll('.window-pane').forEach(p => p.classList.remove('active'));
-  document.getElementById('pane-' + type).classList.add('active');
-
-  // Nếu chuyển sang tab preview, tự động chạy code luôn cho mới
-  if(type === 'preview') runCode();
+// 1. ĐỒNG BỘ CUỘN TUYỆT ĐỐI
+function syncScroll() {
+  lineNumbers.scrollTop = textarea.scrollTop;
 }
 
+// 2. CẬP NHẬT SỐ DÒNG
+function updateLineNumbers(errorLine = null) {
+  const lines = textarea.value.split('\n').length;
+  let lineStr = '';
+  for (let i = 1; i <= lines; i++) {
+    lineStr += `<div class="${i === errorLine ? 'line-error' : ''}">${i}</div>`;
+  }
+  lineNumbers.innerHTML = lineStr;
+  syncScroll();
+}
+
+// 3. CHẠY CODE
 function runCode() {
   const userCode = textarea.value;
   errorLog.style.display = "none";
-  updateLineNumbers();
-
-  // THÊM DÒNG NÀY: Chèn meta charset vào đầu Iframe
-  const blobContent = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8"> <style>body{font-family:sans-serif;}</style>
-        <script>
-          window.onerror=function(m,u,l,c){
-            window.parent.postMessage({type:'error',msg:m,line:l,col:c},'*');
-            return true;
-          };
-        <\/script>
-      </head>
-      <body>${userCode}</body>
-    </html>`;
-
-  const blob = new Blob([blobContent], { type: 'text/html;charset=UTF-8' }); // Thêm charset ở đây nữa cho chắc
+  const blobContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;}</style><script>window.onerror=function(m,u,l,c){window.parent.postMessage({type:'error',msg:m,line:l,col:c},'*');return true;};<\/script></head><body>${userCode}</body></html>`;
+  const blob = new Blob([blobContent], { type: 'text/html;charset=UTF-8' });
   preview.src = URL.createObjectURL(blob);
 }
 
+// 4. CHUYỂN TAB
+function switchTab(type) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + type).classList.add('active');
+  document.querySelectorAll('.window-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + type).classList.add('active');
+  if(type === 'preview') runCode();
+}
 
-
-// Giữ nguyên các hàm insert, wrap, popup của bạn...
-/* CÁC HÀM CHÈN KÝ TỰ (GIỮ NGUYÊN TỪ BẢN TRƯỚC) */
+// 5. DỮ LIỆU ĐẦY ĐỦ CỦA BẠN (Đã khôi phục hoàn toàn)
 const data = {
   quick: [
-  /* --- NHÓM KÝ TỰ MỚI TỪ ẢNH CỦA BẠN --- */
-  {n:"Tab ⮕", a:()=>ins("  ")},
-  {n:"#", a:()=>ins("#")},
-  {n:".", a:()=>ins(".")},
-  {n:"(", a:()=>ins("(")},
-  {n:")", a:()=>ins(")")},
-  {n:"&", a:()=>ins("&")},
-  
-
-  /* --- NHÓM COMMENT (CHÚ THÍCH) PHÂN LOẠI --- */
-  // Chú thích HTML: {n:"", a:()=>ins("")},
-  
-  // Chú thích CSS: /* */
-  {n:"/* CSS */", a:()=>ins("/* */")},
-  
-  // Chú thích JS: // hoặc /* */
-  {n:"// JS", a:()=>ins("// ")},
-  {n:"/* JS-Khối */", a:()=>ins("/* */")},
-
-  /* --- CÁC PHÍM NHANH KHÁC --- */
-  {n:"_", a:()=>ins("_")},
-  {n:"<", a:()=>ins("<")},
-  {n:">", a:()=>ins(">")},
-  {n:";", a:()=>ins(";")},
-  {n:"' '", a:()=>ins("''")},
-  {n:'" "', a:()=>ins('""')}
-],
-
-  
-  
+    {n:"Tab ⮕", a:()=>ins("  ")}, {n:"#", a:()=>ins("#")}, {n:".", a:()=>ins(".")},
+    {n:"(", a:()=>ins("(")}, {n:")", a:()=>ins(")")}, {n:"&", a:()=>ins("&")},
+    {n:"/* CSS */", a:()=>ins("/* */")}, {n:"// JS", a:()=>ins("// ")},
+    {n:"/* JS-Khối */", a:()=>ins("/* */")}, {n:"_", a:()=>ins("_")},
+    {n:"<", a:()=>ins("<")}, {n:">", a:()=>ins(">")}, {n:";", a:()=>ins(";")},
+    {n:"' '", a:()=>ins("''")}, {n:'" "', a:()=>ins('""')}
+  ],
   html: [
-    /* Nhóm thuộc tính (Nút mới) */
-    {n:'id=""', a:()=>ins('id=""')},
-    {n:'class=""', a:()=>ins('class=""')},
-    {n:'src=""', a:()=>ins('src=""')},
-    {n:'href=""', a:()=>ins('href=""')},
-    {n:'style=""', a:()=>ins('style=""')},
-    {n:'type=""', a:()=>ins('type=""')},
-    {n:'alt=""', a:()=>ins('alt=""')},
-    
-    /* Nhóm thẻ (Thẻ bao quanh) */
-    {n:"<div>", a:()=>wrap("<div>","</div>")},
-    {n:"<span>", a:()=>wrap("<span>","</span>")},
-    {n:"<h1>", a:()=>wrap("<h1>","</h1>")},
-    {n:"<p>", a:()=>wrap("<p>","</p>")},
-    {n:"<a>", a:()=>wrap("<a>","</a>")},
+    {n:'id=""', a:()=>ins('id=""')}, {n:'class=""', a:()=>ins('class=""')},
+    {n:'src=""', a:()=>ins('src=""')}, {n:'href=""', a:()=>ins('href=""')},
+    {n:'style=""', a:()=>ins('style=""')}, {n:'type=""', a:()=>ins('type=""')},
+    {n:'alt=""', a:()=>ins('alt=""')}, {n:"<div>", a:()=>wrap("<div>","</div>")},
+    {n:"<span>", a:()=>wrap("<span>","</span>")}, {n:"<h1>", a:()=>wrap("<h1>","</h1>")},
+    {n:"<p>", a:()=>wrap("<p>","</p>")}, {n:"<a>", a:()=>wrap("<a>","</a>")},
     {n:"<img>", a:()=>ins('<img src="" alt="">')},
     {n:"<script>", a:()=>wrap("<script>\n","\n<\/script>")},
     {n:"<style>", a:()=>wrap("<style>\n","\n</style>")}
   ],
-  
-   css: [
-    /* --- NHÓM CHỮ (FONT & TEXT) --- */
-    {n:"f-size", a:()=>ins("font-size: 16px;")},
-    {n:"f-bold", a:()=>ins("font-weight: bold;")},
-    {n:"color", a:()=>ins('color: #ffffff;')},
-    {n:"t-center", a:()=>ins("text-align: center;")},
-    {n:"l-height", a:()=>ins("line-height: 1.5;")},
-    {n:"family", a:()=>ins("font-family: sans-serif;")},
+  css: [
+    {n:"f-size", a:()=>ins("font-size: 16px;")}, {n:"f-bold", a:()=>ins("font-weight: bold;")},
+    {n:"color", a:()=>ins('color: #ffffff;')}, {n:"t-center", a:()=>ins("text-align: center;")},
+    {n:"l-height", a:()=>ins("line-height: 1.5;")}, {n:"family", a:()=>ins("font-family: sans-serif;")},
     {n:"shadow", a:()=>ins("text-shadow: 2px 2px 4px rgba(0,0,0,0.5);")},
-
-    /* --- NHÓM BỐ CỤC (LAYOUT) --- */
-    {n:"flex", a:()=>ins("display: flex;")},
-    {n:"column", a:()=>ins("flex-direction: column;")},
+    {n:"flex", a:()=>ins("display: flex;")}, {n:"column", a:()=>ins("flex-direction: column;")},
     {n:"center", a:()=>ins("justify-content: center; align-items: center;")},
-    {n:"grid", a:()=>ins("display: grid; grid-template-columns: 1fr 1fr;")},
-    {n:"gap", a:()=>ins("gap: 10px;")},
-    {n:"fixed", a:()=>ins("position: fixed; top: 0; left: 0; right: 0; z-index: 1000;")},
-    {n:"absolute", a:()=>ins("position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);")},
-
-    /* --- NHÓM KHUNG (BOX MODEL) --- */
-    {n:"width", a:()=>ins("width: 100%;")},
-    {n:"height", a:()=>ins("height: 100vh;")},
-    {n:"padding", a:()=>ins("padding: 10px;")},
-    {n:"margin", a:()=>ins("margin: 10px;")},
-    {n:"border", a:()=>ins("border: 1px solid #444;")},
-    {n:"radius", a:()=>ins("border-radius: 8px;")},
-    {n:"bg-color", a:()=>ins("background-color: #1e1e1e;")},
-    {n:"overflow", a:()=>ins("overflow: hidden;")},
-    {n:"box-sizing", a:()=>ins("box-sizing: border-box;")}
+    {n:"grid", a:()=>ins("display: grid;")}, {n:"gap", a:()=>ins("gap: 10px;")},
+    {n:"fixed", a:()=>ins("position: fixed; top: 0;")}, {n:"absolute", a:()=>ins("position: absolute;")},
+    {n:"width", a:()=>ins("width: 100%;")}, {n:"height", a:()=>ins("height: 100vh;")},
+    {n:"padding", a:()=>ins("padding: 10px;")}, {n:"margin", a:()=>ins("margin: 10px;")},
+    {n:"border", a:()=>ins("border: 1px solid #444;")}, {n:"radius", a:()=>ins("border-radius: 8px;")},
+    {n:"bg-color", a:()=>ins("background-color: #1e1e1e;")}, {n:"box-sizing", a:()=>ins("box-sizing: border-box;")}
   ],
-
-  
-  
-    js: [
-    /* Nhóm cơ bản bạn vừa gửi */
-    {n:"log", a:()=>ins('console.log("");')},
-    {n:"alert", a:()=>ins('alert("");')},
+  js: [
+    {n:"log", a:()=>ins('console.log("");')}, {n:"alert", a:()=>ins('alert("");')},
     {n:"if else", a:()=>ins('if () {\n  \n} else {\n  \n}')},
     {n:"function", a:()=>ins('function name() {\n  \n}')},
     {n:"for", a:()=>ins('for (let i = 0; i < 10; i++) {\n  \n}')},
     {n:"getById", a:()=>ins('document.getElementById("");')},
     {n:"querySelector", a:()=>ins('document.querySelector("");')},
-
-    /* Nhóm bổ sung nâng cao */
-    {n:".focus()", a:()=>ins('.focus();')},
-    {n:".value", a:()=>ins('.value')},
-    {n:".innerHTML", a:()=>ins('.innerHTML = "";')},
-    {n:".innerText", a:()=>ins('.innerText = "";')},
+    {n:".focus()", a:()=>ins('.focus();')}, {n:".value", a:()=>ins('.value')},
+    {n:".innerHTML", a:()=>ins('.innerHTML = "";')}, {n:".innerText", a:()=>ins('.innerText = "";')},
     {n:".style", a:()=>ins('.style.')},
     {n:"addEvent", a:()=>ins('.addEventListener("", () => {\n  \n});')}
-  ],
-
-
+  ]
 };
 
+// CÁC HÀM XỬ LÝ CHÈN CODE
 function ins(val) {
-  const s = textarea.selectionStart;
-  const e = textarea.selectionEnd;
+  const s = textarea.selectionStart, e = textarea.selectionEnd;
   textarea.setRangeText(val, s, e, 'end');
   textarea.focus();
   updateLineNumbers();
 }
 
 function wrap(open, close) {
-  const s = textarea.selectionStart;
-  const e = textarea.selectionEnd;
+  const s = textarea.selectionStart, e = textarea.selectionEnd;
   const sel = textarea.value.substring(s, e);
   textarea.setRangeText(open + sel + close, s, e, 'end');
   textarea.focus();
@@ -362,42 +219,31 @@ function wrap(open, close) {
 
 function openPopup(type) {
   popup.style.display = "block";
+  document.getElementById("popup-title").innerText = type.toUpperCase();
   grid.innerHTML = '';
-  if (data[type]) {
-    data[type].forEach(item => {
-      const btn = document.createElement('button');
-      btn.innerText = item.n;
-      btn.onclick = item.a;
-      grid.appendChild(btn);
-    });
-  }
+  data[type].forEach(item => {
+    const btn = document.createElement('button');
+    btn.innerText = item.n;
+    btn.onclick = item.a;
+    grid.appendChild(btn);
+  });
 }
 
 function closePopup() { popup.style.display = "none"; }
 
-function updateLineNumbers(errorLine = null) {
-  const lines = textarea.value.split('\n').length;
-  let lineStr = '';
-  for (let i = 1; i <= lines; i++) {
-    lineStr += `<div class="${i === errorLine ? 'line-error' : ''}">${i}</div>`;
-  }
-  lineNumbers.innerHTML = lineStr;
-}
-
-function syncScroll() { lineNumbers.scrollTop = textarea.scrollTop; }
-
+// LẮNG NGHE LỖI
 window.addEventListener('message', (e) => {
   if (e.data.type === 'error') {
     errorLog.style.display = "block";
     errorLog.innerHTML = `⚠️ Lỗi: ${e.data.msg} (Dòng ${e.data.line})`;
-    switchTab('editor'); // Tự chuyển về tab code khi có lỗi
+    switchTab('editor');
     updateLineNumbers(e.data.line);
   }
 });
 
 function resetEditor() {
-    textarea.value = "<h1>Chào mừng bạn!</h1>\n<p>Đây là giao diện dạng Sheet.</p>";
-    runCode();
+  textarea.value = "<h1>Chào mừng bạn!</h1>\n<p>Đây là giao diện dạng Sheet.</p>";
+  runCode();
 }
 
 updateLineNumbers();
