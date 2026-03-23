@@ -266,30 +266,62 @@ function switchTab(type) {
 // Data phím nhanh giữ nguyên
 const data = {
   quick: [{n:"Tab ⮕", a:()=>ins("  ")}, {n:"#", a:()=>ins("#")}, {n:".", a:()=>ins(".")}, {n:"(", a:()=>ins("(")}, {n:")", a:()=>ins(")")}, {n:"&", a:()=>ins("&")}, {n:"/* CSS */", a:()=>ins("/* */")}, {n:"// JS", a:()=>ins("// ")}, {n:"/* JS-Khối */", a:()=>ins("/* */")}, {n:"_", a:()=>ins("_")}, {n:"<", a:()=>ins("<")}, {n:">", a:()=>ins(">")}, {n:";", a:()=>ins(";")}, {n:"' '", a:()=>ins("''")}, {n:'" "', a:()=>ins('""')}],
-  html: [{n:'id=""', a:()=>ins('id=""')}, {n:'class=""', a:()=>ins('class=""')}, {n:'src=""', a:()=>ins('src=""')}, {n:'href=""', a:()=>ins('href=""')}, {n:'style=""', a:()=>ins('style=""')}, {n:'type=""', a:()=>ins('type=""')}, {n:'alt=""', a:()=>ins('alt=""')}, {n:"<div>", a:()=>wrap("<div>","</div>")}, {n:"<span>", a:()=>wrap("<span>","</span>")}, {n:"<h1>", a:()=>wrap("<h1>","</h1>")}, {n:"<p>", a:()=>wrap("<p>","</p>")}, {n:"<a>", a:()=>wrap("<a>","</a>")}, {n:"<img>", a:()=>ins('<img src="" alt="">')}, {n:"<script>", a:()=>wrap("<script>\n","\n<\/script>")}, {n:"<style>", a:()=>wrap("<style>\n","\n</style> text-shadow: 2px 2px 4px rgba(0,0,0,0.5);")}],
+  
+  // SỬA ĐOẠN NÀY TRONG CODE CỦA BẠN
+html: [
+  {n:'id=""', a:()=>ins('id=""')}, 
+  {n:'class=""', a:()=>ins('class=""')}, 
+  {n:'src=""', a:()=>ins('src=""')}, 
+  {n:'href=""', a:()=>ins('href=""')}, 
+  {n:'style=""', a:()=>ins('style=""')}, 
+  {n:'type=""', a:()=>ins('type=""')}, 
+  {n:'alt=""', a:()=>ins('alt=""')}, 
+  {n:"<div>", a:()=>ins("<div></div>")},   // Đổi wrap thành ins
+  {n:"<span>", a:()=>ins("<span></span>")}, // Đổi wrap thành ins
+  {n:"<h1>", a:()=>ins("<h1></h1>")},     // Đổi wrap thành ins
+  {n:"<p>", a:()=>ins("<p></p>")},         // Đổi wrap thành ins
+  {n:"<a>", a:()=>ins("<a></a>")},         // Đổi wrap thành ins
+  {n:"<img>", a:()=>ins('<img src="" alt="">')}, 
+  {n:"<script>", a:()=>ins("<script>\n\n<\/script>")}, 
+  {n:"<style>", a:()=>ins("<style>\n\n</style>")}
+],  
+  
   css: [{n:"f-size", a:()=>ins("font-size: 16px;")}, {n:"f-bold", a:()=>ins("font-weight: bold;")}, {n:"color", a:()=>ins('color: #ffffff;')}, {n:"t-center", a:()=>ins("text-align: center;")}, {n:"l-height", a:()=>ins("line-height: 1.5;")}, {n:"family", a:()=>ins("font-family: sans-serif;")}, {n:"flex", a:()=>ins("display: flex;")}, {n:"center", a:()=>ins("justify-content: center; align-items: center;")}, {n:"padding", a:()=>ins("padding: 10px;")}, {n:"border", a:()=>ins("border: 1px solid #444;")}, {n:"radius", a:()=>ins("border-radius: 8px;")}],
   js: [{n:"log", a:()=>ins('console.log("");')}, {n:"alert", a:()=>ins('alert("");')}, {n:"if else", a:()=>ins('if () {\n  \n} else {\n  \n}')}, {n:"function", a:()=>ins('function name() {\n  \n}')}, {n:"getById", a:()=>ins('document.getElementById("");')}, {n:"addEvent", a:()=>ins('.addEventListener("", () => {\n  \n});')}]
 };
+
+
+
 
 function ins(val) {
   const s = textarea.selectionStart;
   const e = textarea.selectionEnd;
   
-  // Chèn nội dung vào textarea
+  // 1. Chèn nội dung
   textarea.setRangeText(val, s, e, 'end'); 
   
-  // KIỂM TRA: Nếu chuỗi kết thúc bằng cặp "" hoặc () hoặc {}
-  // Chúng ta sẽ lùi con trỏ lại 1 vị trí để nó nằm ở giữa
-  if (val.endsWith('""') || val.endsWith('()') || val.endsWith('{}')) {
-    const newPos = textarea.selectionStart - 1;
-    textarea.setSelectionRange(newPos, newPos);
-  } else if (val.endsWith('""')) { 
-    // Trường hợp đặc biệt nếu bạn muốn xử lý riêng cho dấu nháy
-    const newPos = textarea.selectionStart - 1;
-    textarea.setSelectionRange(newPos, newPos);
+  // 2. Tính toán vị trí mới
+  let newPos = s + val.length; 
+
+  // Nếu là thẻ HTML dính liền kiểu <div></div>
+  if (val.includes('></')) {
+    newPos = s + val.indexOf('>') + 1;
+  } 
+  // Nếu là cặp ngoặc "" hoặc () hoặc {}
+  else if (val.endsWith('""') || val.endsWith('()') || val.endsWith('{}')) {
+    newPos = s + val.length - 1;
+  }
+  // Nếu là các thuộc tính như id="" (con trỏ vào giữa "")
+  else if (val.endsWith('=""')) {
+      newPos = s + val.length - 1;
   }
 
-  textarea.focus();
+  // 3. Ép con trỏ nhảy vào vị trí đã tính
+  setTimeout(() => {
+    textarea.focus();
+    textarea.setSelectionRange(newPos, newPos);
+  }, 10);
+
   saveToHistory();
   updateLineNumbers();
 }
