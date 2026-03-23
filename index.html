@@ -57,6 +57,8 @@
   align-items: center;
   padding: 10px;
   overflow: hidden;
+ min-height: 0; /* 👈 THỨ BẠN THIẾU */
+}
              } 
  
  
@@ -105,7 +107,7 @@
       <textarea id="code" spellcheck="false" oninput="handleInput()" onscroll="syncScroll()"><h1>Chào mừng bạn!</h1>
 <p>Dùng nút Undo/Redo để quản lý lịch sử code.</p>
 <script>
-  console.log("Sẵn sàng chưa!");
+  console.log("Sẵn sàngo!");
 </script></textarea>
     </div>
   </div>
@@ -183,7 +185,7 @@ function runCode() {
   const userCode = textarea.value;
   errorLog.style.display = "none";
   const blobContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;padding:15px;overflow: auto; /* 👈 BẮT BUỘC */
-    box-sizing: border}</style><script>window.onerror=function(m,u,l,c){window.parent.postMessage({type:'error',msg:m,line:l,col:c},'*');return true;};<\/script></head><body>${userCode}</body></html>`;
+    box-sizing: border-box;}</style><script>window.onerror=function(m,u,l,c){window.parent.postMessage({type:'error',msg:m,line:l,col:c},'*');return true;};<\/script></head><body>${userCode}</body></html>`;
   const blob = new Blob([blobContent], { type: 'text/html;charset=UTF-8' });
   preview.src = URL.createObjectURL(blob);
 }
