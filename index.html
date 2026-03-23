@@ -136,6 +136,8 @@
 <body>
 
 <div class="topbar">
+  <button class="btn-history" onclick="document.getElementById('file-input').click()">📂 Mở File</button>
+  <input type="file" id="file-input" style="display:none" accept=".html,.txt,.css,.js" onchange="loadFile(this)">
   <button class="btn-reload" onclick="resetEditor()">🔄 Reset</button>
   <button class="btn-history" onclick="undo()">↩ Undo</button>
   <button class="btn-history" onclick="redo()">↪ Redo</button>
@@ -269,7 +271,31 @@ const data = {
   js: [{n:"log", a:()=>ins('console.log("");')}, {n:"alert", a:()=>ins('alert("");')}, {n:"if else", a:()=>ins('if () {\n  \n} else {\n  \n}')}, {n:"function", a:()=>ins('function name() {\n  \n}')}, {n:"getById", a:()=>ins('document.getElementById("");')}, {n:"addEvent", a:()=>ins('.addEventListener("", () => {\n  \n});')}]
 };
 
-function ins(val) { const s = textarea.selectionStart, e = textarea.selectionEnd; textarea.setRangeText(val, s, e, 'end'); textarea.focus(); saveToHistory(); updateLineNumbers(); }
+function ins(val) {
+  const s = textarea.selectionStart;
+  const e = textarea.selectionEnd;
+  
+  // Chèn nội dung vào textarea
+  textarea.setRangeText(val, s, e, 'end'); 
+  
+  // KIỂM TRA: Nếu chuỗi kết thúc bằng cặp "" hoặc () hoặc {}
+  // Chúng ta sẽ lùi con trỏ lại 1 vị trí để nó nằm ở giữa
+  if (val.endsWith('""') || val.endsWith('()') || val.endsWith('{}')) {
+    const newPos = textarea.selectionStart - 1;
+    textarea.setSelectionRange(newPos, newPos);
+  } else if (val.endsWith('""')) { 
+    // Trường hợp đặc biệt nếu bạn muốn xử lý riêng cho dấu nháy
+    const newPos = textarea.selectionStart - 1;
+    textarea.setSelectionRange(newPos, newPos);
+  }
+
+  textarea.focus();
+  saveToHistory();
+  updateLineNumbers();
+}
+
+
+
 function wrap(open, close) { const s = textarea.selectionStart, e = textarea.selectionEnd; const sel = textarea.value.substring(s, e); textarea.setRangeText(open + sel + close, s, e, 'end'); textarea.focus(); saveToHistory(); updateLineNumbers(); }
 function openPopup(type) { popup.style.display = "block"; document.getElementById("popup-title").innerText = type.toUpperCase(); grid.innerHTML = ''; data[type].forEach(item => { const btn = document.createElement('button'); btn.innerText = item.n; btn.onclick = item.a; grid.appendChild(btn); }); }
 function closePopup() { popup.style.display = "none"; }
@@ -282,6 +308,39 @@ window.addEventListener('message', (e) => {
     updateLineNumbers(e.data.line);
   }
 });
+
+
+function loadFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    const content = e.target.result;
+    
+    // Cập nhật nội dung vào textarea
+    textarea.value = content;
+    
+    // Lưu vào lịch sử để có thể Undo
+    saveToHistory();
+    
+    // Cập nhật lại số dòng
+    updateLineNumbers();
+    
+    // Reset input để có thể chọn lại chính file đó nếu muốn
+    input.value = ''; 
+    
+    alert("Đã tải file: " + file.name);
+  };
+
+  reader.onerror = function() {
+    alert("Không thể đọc file này!");
+  };
+
+  reader.readAsText(file);
+}
+
 
 function resetEditor() { if(confirm("Reset code?")) { textarea.value = "<h1>Chào mừng!</h1>"; historyStack = [textarea.value]; redoStack = []; updateLineNumbers(); } }
 updateLineNumbers();
